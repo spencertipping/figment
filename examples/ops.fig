@@ -1,0 +1,77 @@
+Unary and binary operators.
+Figment provides an infinite number of operators. Tokens that start with an operator character are assumed to be operators. Some operator characters, such as (), [], and {}, have assumed
+grouping pairs. For sanity's sake, you can't mismatch them.
+
+By convention, a prefix unary : quotes things. However, this meaning isn't universal; it is still an operator, which means that other quotation forms are active.
+
+3 + 4           / The + is an operator
+3 + 4 / 5       / The + and / are both operators, but / binds first
+3 + 4 * 5       / Same here, but * instead of /
+3+4/5           / Binary + applied to 3 and binary / applied to 4 and 5
+
+foo+bar         / Binary + applied to foo and bar
+foo*bar         / Binary * applied to foo and bar
+foo-bar         / Exceptional case: identifier foo-bar
+foo/bar         / Exceptional case: identifier foo/bar
+
+3 w/ 4          / Exceptional case: 3 join w/ join 4
+
+3 + :4          / Three plus quoted four (which is a string)
+%3 + --5        / Unary % applied to 3, plus unary -- applied to 5 (it's up to the backend to decide whether this is valid)
+^&2 + ~~qr/foo/ / Unary ^& applied to 2, plus unary ~~ applied to the quoted regexp foo
+^!@qr foo       / Unary ^!@ applied to the quoted regexp foo
+
+3 + {foo}       / Three plus {} applied to foo
+3 + [foo]       / Three plus [] applied to foo
+3 + (foo)       / Three plus () applied to foo (parens aren't erased, though the convention is to make them the identity function)
+
+3(foo)          / Three joined with () applied to foo
+3[foo]          / Three joined with [] applied to foo
+3{foo}          / Three joined with {} applied to foo
+
+3 + 4(foo)      / Join binds more tightly than plus
+3 +4(foo)       / Parse tree is (join 3 (unary+ (join 4 (paren foo))))
+3 + 4 (foo)     / Join still binds first
+3 +4 (foo)      / Joins 3 to +4, and that to () applied to foo
+
+3? + 50         / Postfix ? applied to 3, plus 50
+3 ? +50         / Binary ? applied to 3 and prefix + applied to 50
+3 ? 4 : 5       / Binary ? applied to 3 and binary : applied to 4 and 5
+foo: bar        / Postfix : applied to foo, joined with bar
+foo : bar       / Binary : applied to foo and bar
+foo:bar         / Binary : applied to foo and bar
+
+foo.bar         / Binary . applied to foo and bar
+foo. bar        / Postfix . applied to foo, joined with bar
+foo .bar        / Foo joined with prefix . applied to bar
+
+foo::bar        / Binary :: applied to foo and bar
+foo:: bar       / Postfix unary :: applied to foo, joined with bar
+foo: :bar       / Postfix unary : applied to foo, joined with quoted word bar
+foo: : :bar     / Binary : applied to postfix unary : applied to foo, and quoted word bar
+foo: : : bar    / Invalid syntax: two adjacent binary operators
+
+:qr             / Invalid: expected quoted regular expression
+:qr foo         / Unary : applied to quoted regular expression foo
+::qr foo        / Unary prefix :: applied to quoted regular expression foo
+::qr(foo)       / Ditto
+::qr            / Invalid; expected quoted regular expression
+
+foo, bar, bif   / Exceptional case: comma is always binary
+
+3 || 4          / Binary || applied to 3 and 4
+3 /| 4          / Binary /| applied to 3 and 4
+3 -> 4          / Binary -> applied to 3 and 4
+3 <-> 4         / Binary <-> applied to 3 and 4
+3 /|\ 4         / Binary /|\ applied to 3 and 4
+3 \|/ 4         / Binary \|/ applied to 3 and 4
+
+3 ^ 4           / Binary ^ applied to 3 and 4
+3 v 4           / Exceptional case: binary v applied to 3 and 4
+3 n 4           / Exceptional case: binary n applied to 3 and 4
+3 u 4           / Exceptional case: binary u applied to 3 and 4
+
+foo@bar.com                             / Binary @ applied to foo and binary . applied to bar and com
+http://foo.com                          / Binary :// applied to http and binary . applied to foo and com
+http://foo.com:8080/bif/baz.jpg         / S-expression is (:// http (/ (/ (: (. foo com) 8080) bif) (. baz jpg)))
+/usr/share/bin                          / S-expression is (/ (/ (unary/ usr) share) bin)

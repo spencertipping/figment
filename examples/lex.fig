@@ -1,0 +1,77 @@
+Comments.
+
+This paragraph is a comment.
+Figment embeds SDoc syntax to provide easy large-block commenting.
+
+Line comments start with / followed by a capitalized word.
+
+/ This is a line comment
+
+Also, capital letters are reserved in the sense that you can't start identifiers with them.
+
+Atoms and surface syntax.
+
+'string literal'        / A literal string
+"string literal"        / Another literal string (no difference between single/double quotes)
+qq'string literal'      / Another way to quote stuff
+qq"string literal"      / Ditto
+
+foo'                    / Exceptional case: identifier foo' (e.g. let foo = 5, foo' = foo + 1 in ...)
+foo''                   / Exceptional case: identifier foo''
+
+:quoted-word            / A quoted word
+qq quoted-word          / Another way to say it
+
+3.141592                / A floating-point number
+3                       / An integer
+-3                      / Unary negation, then an integer
+
+qn 3.141592             / A way to quote a number (though why bother, really)
+qn 3                    / Another quoted number
+qn -3                   / Forces the - to be a part of the number, rather than being applied later as an operator
+
+true                    / Identifier true
+
+Quoted forms.
+
+qr[^foo$]               / Regular expression
+qr/^foo$/               / Regular expression
+qs[foo bar bif]         / Quoted syntax
+qs/foo bar bif/         / Quoted syntax
+qs'foo bar bif'         / Quoted syntax
+
+qs<eof                  / Quoted block of syntax (qs[] is also multiline)
+Heredoc text
+  eof                   / End-markers can be indented and followed by line-comments
+
+qr<eof                  / Multiline quoted regexp
+^foo$
+eof
+
+Delimiters.
+q is a reserved letter. This means that identifiers can't start with q, though they can contain it.
+
+qr[]
+qr()
+qr{}
+qr//
+qr''
+qr""
+qr++
+qr||
+qr ^foo$                / Space is the delimiter
+qr<word
+  stuff
+word
+
+Unquoting.
+Quoting is done with q, so unquoting is done with Q:
+
+'string literal Q(4 + 5)'       / Becomes 'string literal 9', assuming sensible definition of numeric +
+qs[foo bar Q[bif]]              / Becomes a syntax tree representing foo <join> bar <join> whatever bif is
+'string literal Qfoo'           / No unquoting here; Q must be followed by a delimiter
+
+Unquoting can be prevented by using an unquote-proof quotation form. These are upper-cased:
+
+qS[foo bar Q(bif)]              / Becomes a syntax tree representing foo <join> bar <join> Q(bif)
+qR[^fooQ(bif)$]                 / No interpolation here

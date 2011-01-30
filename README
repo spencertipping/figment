@@ -1,0 +1,12 @@
+Figment - a dynamically typed programming language with no defined semantics
+
+Figment is a programming language unburdened with preconceived notions about
+purpose and operational semantics. Its purpose is to be anything and everything
+to anyone and everyone who uses it in any capacity. The core design principles
+are:
+
+1. Expressiveness - because programmers never write clever, indecipherable code
+2. Terseness - because programmers never write clever, indecipherable code
+3. Ergonomics over aesthetics - easier to write, harder to read
+4. Customizability - every construct can be reinterpreted
+5. Perl - Perl is awesome, so use (steal) features from it
