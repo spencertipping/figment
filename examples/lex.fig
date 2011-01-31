@@ -3,7 +3,7 @@ Comments.
 This paragraph is a comment.
 Figment embeds SDoc syntax to provide easy large-block commenting.
 
-Line comments start with / followed by a capitalized word.
+Line comments start with / followed by a capitalized word; for example:
 
 / This is a line comment
 
@@ -19,8 +19,8 @@ qq"string literal"      / Ditto
 foo'                    / Exceptional case: identifier foo' (e.g. let foo = 5, foo' = foo + 1 in ...)
 foo''                   / Exceptional case: identifier foo''
 
-:quoted-word            / A quoted word
-qq quoted-word          / Another way to say it
+:quoted-word            / A quoted word (by convention, a prefix : quotes something; but this is semantic rather than syntactic)
+qq quoted-word          / Another way to say it, but with stronger binding
 
 3.141592                / A floating-point number
 3                       / An integer
@@ -48,17 +48,21 @@ qr<eof                  / Multiline quoted regexp
 ^foo$
 eof
 
+qR<eof
+^foo$
+eof
+
 Delimiters.
 q is a reserved letter. This means that identifiers can't start with q, though they can contain it.
 
-qr[]
-qr()
-qr{}
-qr//
-qr''
-qr""
-qr++
-qr||
+qr[^foo$]
+qr(^foo$)
+qr{^foo$}
+qr/^foo$/
+qr'^foo$'
+qr"^foo$"
+qr+^foo$+
+qr|^foo$|
 qr ^foo$                / Space is the delimiter
 qr<word
   stuff
@@ -70,8 +74,10 @@ Quoting is done with q, so unquoting is done with Q:
 'string literal Q(4 + 5)'       / Becomes 'string literal 9', assuming sensible definition of numeric +
 qs[foo bar Q[bif]]              / Becomes a syntax tree representing foo <join> bar <join> whatever bif is
 'string literal Qfoo'           / No unquoting here; Q must be followed by a delimiter
+'string literal Q foo '         / Unquoting, equivalent to Q(foo)
+'string literal \Q foo '        / No unquoting, since Q is escaped
 
 Unquoting can be prevented by using an unquote-proof quotation form. These are upper-cased:
 
-qS[foo bar Q(bif)]              / Becomes a syntax tree representing foo <join> bar <join> Q(bif)
+qS[foo bar Q(bif)]              / Becomes a syntax tree representing foo <join> bar <join> Q(bif) -- no interpolation
 qR[^fooQ(bif)$]                 / No interpolation here
