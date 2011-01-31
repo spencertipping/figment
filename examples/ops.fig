@@ -41,6 +41,12 @@ x : xs++y       / Binary : applied to x and binary ++ applied to xs and y
 3[foo]          / Three joined with [] applied to foo
 3{foo}          / Three joined with {} applied to foo
 
+()              / Brackets contain an empty expression node (still valid though)
+[]              / Ditto
+{}              / Ditto
+
+[foo][bar]      / Foo inside brackets joined with bar inside brackets
+
 3 + 4(foo)      / Join binds more tightly than plus
 3 +4(foo)       / Parse tree is (join 3 (unary+ (join 4 (paren foo))))
 3 + 4 (foo)     / Join still binds first

@@ -3,6 +3,9 @@
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
 " URL:        http://spencertipping.com/figment/figment.vim
 
+" Normally this isn't the file you end up using. Rather, you source it from
+" inside another syntax file that provides further definitions.
+
 if !exists("main_syntax")
   if exists("b:current_syntax")
     finish
@@ -55,11 +58,11 @@ syn match figCurlyError  /[)\]]/ contained containedin=figCurlyBrackets
   hi link figCurlyBracket       Special
 
 " Quotation and unquotation.
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z](/             end=/)/                contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\[/            end=/]/                contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]{/             end=/}/                contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\z([+/"'| ]\)/ end=/\z1/              contains=figUnquote,figEscape
-syn region figQuoted matchgroup=figQuotationHere start=/\<q[a-z]<\z(\I\i*\)/   end=/^\s*\z1\(\s\|$\)/ contains=figUnquote,figEscape
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\+(/             end=/)/                contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\+\[/            end=/]/                contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\+{/             end=/}/                contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\+\z([+/"'| ]\)/ end=/\z1/              contains=figUnquote,figEscape
+syn region figQuoted matchgroup=figQuotationHere start=/\<q[a-z]\+<\z(\I\i*\)/   end=/^\s*\z1\(\s\|$\)/ contains=figUnquote,figEscape
 
 syn region figSingleString matchgroup=figStringDelimiter start=/\<'/ end=/'/ contains=figUnquote,figEscape
 syn region figDoubleString matchgroup=figStringDelimiter start=/"/   end=/"/ contains=figUnquote,figEscape
@@ -70,11 +73,11 @@ syn region figUnquote      matchgroup=figUnquotation start=/Q\[/            end=
 syn region figUnquote      matchgroup=figUnquotation start=/Q{/             end=/}/   contained contains=TOP
 syn region figUnquote      matchgroup=figUnquotation start=/Q\z(["'+/| ]\)/ end=/\z1/ contained contains=TOP
 
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z](/             end=/)/ contains=@figBrackets
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]\[/            end=/]/ contains=@figBrackets
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]{/             end=/}/ contains=@figBrackets
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]\z([+/"'| ]\)/ end=/\z1/
-syn region figLiteralQuoted matchgroup=figLiteralQuotationHere start=/\<q[A-Z]<\z(\I\i*\)/   end=/^\s*\z1\(\s\|$\)/
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z][a-z]*(/             end=/)/ contains=@figBrackets
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z][a-z]*\[/            end=/]/ contains=@figBrackets
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z][a-z]*{/             end=/}/ contains=@figBrackets
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z][a-z]*\z([+/"'| ]\)/ end=/\z1/
+syn region figLiteralQuoted matchgroup=figLiteralQuotationHere start=/\<q[A-Z][a-z]*<\z(\I\i*\)/   end=/^\s*\z1\(\s\|$\)/
 
   hi link figQuoted               String
   hi link figStringDelimiter      Special

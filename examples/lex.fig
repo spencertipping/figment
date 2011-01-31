@@ -54,6 +54,12 @@ qR<eof
 ^foo$
 eof
 
+qfoobar''               / Not necessarily defined, but syntactically valid
+qfoobar()               / Ditto
+
+qFoobar''               / Same as above, but no unquoting
+qFoobar()               / Ditto
+
 Delimiters.
 q is a reserved letter. This means that identifiers can't start with q, though they can contain it.
 
