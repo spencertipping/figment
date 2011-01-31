@@ -26,6 +26,7 @@ qq quoted-word          / Another way to say it, but with stronger binding
 3.141592                / A floating-point number
 3                       / An integer
 -3                      / Unary negation, then an integer
+                        / For sanity's sake, numbers can't start with a period.
 
 qn 3.141592             / A way to quote a number (though why bother, really)
 qn 3                    / Another quoted number
