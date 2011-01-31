@@ -1,0 +1,51 @@
+Real-world examples of possible Figment applications.
+
+Embedding Haskell syntax:
+
+factorial 0 = 1
+factorial n = n * factorial (n - 1)
+
+Writing Caterwaul-style programs:
+
+l[x = 1, y = 2][z.foo = x + y]
+x /se[console.log(x)]
+
+Operating as CSS:
+
+div.foo {font-family: sans-serif}
+div#bar > .bif {font-weight: bold}
+
+Operating as markup:
+
+div.foo('bar')
+
+Destructuring binds (assuming low precedence of |):
+
+map(f, xs) = x::xs' -> f(x) :: map(f, xs')
+           | []     -> []
+
+UI layout:
+
+/window = top: close title tabs
+        | tab(...)
+        | tab(...)
+
+Vaguely normal Javascript:
+
+while (i1 < i2) {
+  while (xs[i1] > pivot) ++i1 ;
+  while (xs[i2] < pivot) --i2 ;
+}
+
+Parsing stuff:
+
+expr ::= term op expr     where op <- qw[+ - * / ^]
+term ::= literal [* term] where literal = qr \d+
+
+Macroexpansion:
+
+fn[x][console.log(x), x](x) when x /debug
+
+Perl-style programming:
+
+map[_ + 1], keys xs

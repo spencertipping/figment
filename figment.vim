@@ -61,16 +61,16 @@ syn match figCurlyError  /[)\]]/ contained containedin=figCurlyBrackets
 syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+(/             end=/)/                contains=figUnquote,figEscape,@figBrackets
 syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+\[/            end=/]/                contains=figUnquote,figEscape,@figBrackets
 syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+{/             end=/}/                contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+\z([+/"'| ]\)/ end=/\z1/              contains=figUnquote,figEscape
+syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+\z([+/"'| ]\)/ end=/\z1\|$/           contains=figUnquote,figEscape
 
 syn region figSingleString matchgroup=figStringDelimiter start=/\<'/ end=/'/ contains=figUnquote,figEscape
 syn region figDoubleString matchgroup=figStringDelimiter start=/"/   end=/"/ contains=figUnquote,figEscape
 
 syn match  figEscape /\\./ contained
-syn region figUnquote      matchgroup=figUnquotation start=/Q(/             end=/)/   contained contains=TOP
-syn region figUnquote      matchgroup=figUnquotation start=/Q\[/            end=/]/   contained contains=TOP
-syn region figUnquote      matchgroup=figUnquotation start=/Q{/             end=/}/   contained contains=TOP
-syn region figUnquote      matchgroup=figUnquotation start=/Q\z(["'+/| ]\)/ end=/\z1/ contained contains=TOP
+syn region figUnquote      matchgroup=figUnquotation start=/Q(/             end=/)/      contained contains=TOP
+syn region figUnquote      matchgroup=figUnquotation start=/Q\[/            end=/]/      contained contains=TOP
+syn region figUnquote      matchgroup=figUnquotation start=/Q{/             end=/}/      contained contains=TOP
+syn region figUnquote      matchgroup=figUnquotation start=/Q\z(["'+/| ]\)/ end=/\z1\|$/ contained contains=TOP
 
 syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*(/             end=/)/ contains=@figBrackets
 syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*\[/            end=/]/ contains=@figBrackets
@@ -88,9 +88,9 @@ syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*
   hi link figLiteralQuotation String
 
 " Numbers.
-syn match figInteger /\d\+/
-syn match figFloat   /\d\+\(\.\d*\)\?\([eE][-+]\?\d\+\)\?/
-syn match figFloat   /\d*\.\d\+\([eE][-+]\?\d\+\)\?/
+syn match figInteger /\<\d\+/
+syn match figFloat   /\<\d\+\(\.\d*\)\?\([eE][-+]\?\d\+\)\?/
+syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
 
   hi link figInteger Number
   hi link figFloat   Number
