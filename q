@@ -976,11 +976,17 @@ __6999988eaf441c9b1282e03e1db427b5
 meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('watch', 'blue');
-meta::note('queue', <<'__61d6dca18e1b46ba24306ba975a75de6');
+meta::note('queue', <<'__c0dff0289b9ac20dc4a6a1dbbfe65c5f');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
 convert text into syntax trees.
-__61d6dca18e1b46ba24306ba975a75de6
+
+Todo.
+
+| 1. Write a figment -> JSON parser.
+  2. Create some skeletal semantics and write a JSON -> JSON interpreter (the goal being to macroexpand code).
+  3. Write a figment-JSON -> Javascript converter (with some sane semantics).
+__c0dff0289b9ac20dc4a6a1dbbfe65c5f
 
 meta::parent('/home/spencertipping/bin/notes', <<'__320d51928ec8e2e370d67d30abe059b5');
 function::note
