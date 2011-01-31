@@ -8,6 +8,9 @@ By convention, a prefix unary : quotes things. However, this meaning isn't unive
 3 + 4 / 5       / The + and / are both operators, but / binds first
 3 + 4 * 5       / Same here, but * instead of /
 3+4/5           / Binary + applied to 3 and binary / applied to 4 and 5
+3+4 / 5         / Plus binds first
+3/4 + 5         / Divide binds first
+3/ 4 + 5        / Postfix (/ applied to 3) joined with 4, plus 5
 
 foo+bar         / Binary + applied to foo and bar
 foo*bar         / Binary * applied to foo and bar
@@ -81,6 +84,11 @@ foo: : : bar    / Ditto
 ::qr(foo)       / Ditto
 ::qr            / Invalid: expected quoted regular expression
 
+qs foo + 4      / Binary +
+qs(foo)+ 4      / Postfix unary + and join
+qs/foo/+ 4      / Ditto
+qs/foo/ + 4     / Binary +
+
 foo, bar, bif   / Exceptional case: comma is always left-associative binary
 foo,            / Invalid: expected expression for comma
 
@@ -94,6 +102,12 @@ foo,            / Invalid: expected expression for comma
 3 <=> 4         / Binary <=> applied to 3 and 4
 3 /|\ 4         / Binary /|\ applied to 3 and 4
 3 \|/ 4         / Binary \|/ applied to 3 and 4
+
+: 3+4           / Prefix : applied to (3 + 4)
+:  3 + 4        / Prefix : applied to 3, plus 4 (the distinction is space/not-space rather than number of spaces)
+: 3 + 4         / Ditto
+: 3+ 4          / Prefix : applied to ((postfix + applied to 3) join 4)
+: 3 +4          / Prefix : applied to (3 join prefix + applied to 4)
 
 3 ^ 4           / Binary ^ applied to 3 and 4
 3 V 4           / Exceptional case: binary V applied to 3 and 4
