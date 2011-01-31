@@ -18,6 +18,7 @@ qq"string literal"      / Ditto
 
 foo'                    / Exceptional case: identifier foo' (e.g. let foo = 5, foo' = foo + 1 in ...)
 foo''                   / Exceptional case: identifier foo''
+foo-bar                 / Exceptional case: identifier foo-bar
 
 :quoted-word            / A quoted word (by convention, a prefix : quotes something; but this is semantic rather than syntactic)
 qq quoted-word          / Another way to say it, but with stronger binding
@@ -33,11 +34,12 @@ qn -3                   / Forces the - to be a part of the number, rather than b
 true                    / Identifier true
 
 Quoted forms.
+When matching brackets are used as delimiters, braces within the quoted text will be matched.
 
 qr[^foo$]               / Regular expression
 qr/^foo$/               / Regular expression
-qs[foo bar bif]         / Quoted syntax
-qs/foo bar bif/         / Quoted syntax
+qs[foo (bar) [bif]]     / Quoted syntax
+qs/foo (bar) bif/       / Quoted syntax
 qs'foo bar bif'         / Quoted syntax
 
 qs<eof                  / Quoted block of syntax (qs[] is also multiline)
@@ -72,12 +74,12 @@ Unquoting.
 Quoting is done with q, so unquoting is done with Q:
 
 'string literal Q(4 + 5)'       / Becomes 'string literal 9', assuming sensible definition of numeric +
-qs[foo bar Q[bif]]              / Becomes a syntax tree representing foo <join> bar <join> whatever bif is
+qs[(foo) bar Q[bif]]            / Becomes a syntax tree representing (foo) <join> bar <join> whatever bif is
 'string literal Qfoo'           / No unquoting here; Q must be followed by a delimiter
 'string literal Q foo '         / Unquoting, equivalent to Q(foo)
 'string literal \Q foo '        / No unquoting, since Q is escaped
 
 Unquoting can be prevented by using an unquote-proof quotation form. These are upper-cased:
 
-qS[foo bar Q(bif)]              / Becomes a syntax tree representing foo <join> bar <join> Q(bif) -- no interpolation
+qS[foo [bar] Q(bif)]            / Becomes a syntax tree representing foo <join> [bar] <join> Q(bif) -- no interpolation
 qR[^fooQ(bif)$]                 / No interpolation here

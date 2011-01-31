@@ -39,6 +39,8 @@ syn region figRoundBrackets  matchgroup=figRoundBracket  start=/(/  end=/)/ tran
 syn region figSquareBrackets matchgroup=figSquareBracket start=/\[/ end=/]/ transparent
 syn region figCurlyBrackets  matchgroup=figCurlyBracket  start=/{/  end=/}/ transparent
 
+syn cluster figBrackets add=figRoundBrackets,figSquareBrackets,figCurlyBrackets
+
 syn match figRoundError  /[\]}]/ contained containedin=figRoundBrackets
 syn match figSquareError /[)}]/  contained containedin=figSquareBrackets
 syn match figCurlyError  /[)\]]/ contained containedin=figCurlyBrackets
@@ -53,9 +55,9 @@ syn match figCurlyError  /[)\]]/ contained containedin=figCurlyBrackets
   hi link figCurlyBracket       Special
 
 " Quotation and unquotation.
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z](/             end=/)/                contains=figUnquote,figEscape
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\[/            end=/]/                contains=figUnquote,figEscape
-syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]{/             end=/}/                contains=figUnquote,figEscape
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z](/             end=/)/                contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\[/            end=/]/                contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]{/             end=/}/                contains=figUnquote,figEscape,@figBrackets
 syn region figQuoted matchgroup=figQuotation     start=/\<q[a-z]\z([+/"'| ]\)/ end=/\z1/              contains=figUnquote,figEscape
 syn region figQuoted matchgroup=figQuotationHere start=/\<q[a-z]<\z(\I\i*\)/   end=/^\s*\z1\(\s\|$\)/ contains=figUnquote,figEscape
 
@@ -68,9 +70,9 @@ syn region figUnquote      matchgroup=figUnquotation start=/Q\[/            end=
 syn region figUnquote      matchgroup=figUnquotation start=/Q{/             end=/}/   contained contains=TOP
 syn region figUnquote      matchgroup=figUnquotation start=/Q\z(["'+/| ]\)/ end=/\z1/ contained contains=TOP
 
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z](/             end=/)/
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]\[/            end=/]/
-syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]{/             end=/}/
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z](/             end=/)/ contains=@figBrackets
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]\[/            end=/]/ contains=@figBrackets
+syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]{/             end=/}/ contains=@figBrackets
 syn region figLiteralQuoted matchgroup=figLiteralQuotation     start=/\<q[A-Z]\z([+/"'| ]\)/ end=/\z1/
 syn region figLiteralQuoted matchgroup=figLiteralQuotationHere start=/\<q[A-Z]<\z(\I\i*\)/   end=/^\s*\z1\(\s\|$\)/
 
