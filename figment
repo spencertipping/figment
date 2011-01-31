@@ -3160,7 +3160,7 @@ __b058828a5b55f650e5457f6b0df06301
 
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::main', <<'__0c22665c090bd7eab6450bbaf1afc020');
+meta::sdoc('js::main', <<'__ddc588d042d6516841c98da695bb2bbc');
 Figment to JSON converter | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3181,11 +3181,13 @@ Lexing is done with a fairly standard lex process. The language isn't regular, b
                     where*[toplevel(cc) = /[A-Z|]/.test(c)     ? call/tail[skip_paragraph(cc)]     : c === 'q'       ? call/tail[quotation(cc, here())] :
                                           /[-a-z]/.test(c)     ? call/tail[identifier(cc, here())] : /[0-9]/.test(c) ? call/tail[number(cc, here())]    :
                                           /[(\[{}\])]/.test(c) ? call/tail[bracket(cc, here())]    : c === '/'       ? call/tail[slash(cc, here())]     :
-                                                                 call/tail[operator(cc, here())],
+                                          /\s/.test(c)         ? call/tail[whitespace(cc)]         :                   call/tail[operator(cc, here())],
 
                            skip_paragraph(cc) = c === '\n' && next() === '\n' ? call/tail[toplevel(cc)] /se[next()] : call/tail[skip_paragraph(cc)],
-                           identifier(cc, at) = call/tail[toplevel(cc)] /se[tokens.push({at: at, data: next_while(/[-a-z\/]/ /mb/test)})]]]]})(require);
-__0c22665c090bd7eab6450bbaf1afc020
+                           whitespace(cc)     = call/tail[toplevel(cc)] /se[tokens.push({at: at, data: ' '})] /se[next_while(/\s/ /mb/test)],
+                           bracket(cc, at)    = call/tail[toplevel(cc)] /se[tokens.push({at: at, data: c}), next()],
+                           identifier(cc, at) = call/tail[toplevel(cc)] /se[tokens.push({at: at, data: next_while(/[-a-z0-9_\/]/ /mb/test)})]]]]})(require);
+__ddc588d042d6516841c98da695bb2bbc
 
 internal::main();
 
