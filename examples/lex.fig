@@ -42,18 +42,6 @@ qs[foo (bar) [bif]]     / Quoted syntax
 qs/foo (bar) bif/       / Quoted syntax
 qs'foo bar bif'         / Quoted syntax
 
-qs<eof                  / Quoted block of syntax (qs[] is also multiline)
-Heredoc text
-  eof                   / End-markers can be indented and followed by line-comments
-
-qr<eof                  / Multiline quoted regexp
-^foo$
-eof
-
-qR<eof
-^foo$
-eof
-
 qfoobar''               / Not necessarily defined, but syntactically valid
 qfoobar()               / Ditto
 
@@ -72,9 +60,6 @@ qr"^foo$"
 qr+^foo$+
 qr|^foo$|
 qr ^foo$                / Space is the delimiter
-qr<word
-  stuff
-word
 
 Unquoting.
 Quoting is done with q, so unquoting is done with Q:

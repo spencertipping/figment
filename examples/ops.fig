@@ -73,7 +73,7 @@ foo::bar        / Binary :: applied to foo and bar
 foo:: bar       / Postfix unary :: applied to foo, joined with bar
 foo: :bar       / Postfix unary : applied to foo, joined with quoted word bar
 foo: : :bar     / Binary : applied to postfix unary : applied to foo, and quoted word bar
-foo: : : bar    / Binary : applied to postfix unary : applied to foo, and prefix : applied to bar (which usually means quotation)
+foo: : : bar    / Ditto
 
 :qr             / Invalid: expected quoted regular expression
 :qr foo         / Unary : applied to quoted regular expression foo
@@ -87,8 +87,11 @@ foo,            / Invalid: expected expression for comma
 3 // 4          / Binary // applied to 3 and 4
 3 || 4          / Binary || applied to 3 and 4
 3 /| 4          / Binary /| applied to 3 and 4
+3 |\ 4          / Binary |\ applied to 3 and 4
+3 \\ 4          / Binary \\ applied to 3 and 4
 3 -> 4          / Binary -> applied to 3 and 4
 3 <-> 4         / Binary <-> applied to 3 and 4
+3 <=> 4         / Binary <=> applied to 3 and 4
 3 /|\ 4         / Binary /|\ applied to 3 and 4
 3 \|/ 4         / Binary \|/ applied to 3 and 4
 
