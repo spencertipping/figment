@@ -5,9 +5,9 @@ grouping pairs. For sanity's sake, you can't mismatch them.
 By convention, a prefix unary : quotes things. However, this meaning isn't universal; it is still an operator, which means that other quotation forms are active.
 
 3 + 4           / The + is an operator
-3 + 4 / 5       / The + and / are both operators, but / binds first
+3 + 4 / 5       / The + and / are both operators; + binds first
 3 + 4 * 5       / Same here, but * instead of /
-3+4/5           / Binary + applied to 3 and binary / applied to 4 and 5
+3+4/5           / Binary / applied to binary + applied to 3 and 4, and 5
 3+4 / 5         / Plus binds first
 3/4 + 5         / Divide binds first
 3/ 4 + 5        / Postfix (/ applied to 3) joined with 4, plus 5
@@ -16,11 +16,20 @@ foo+bar         / Binary + applied to foo and bar
 foo*bar         / Binary * applied to foo and bar
 foo-bar         / Exceptional case: identifier foo-bar
 foo/bar         / Exceptional case: identifier foo/bar
+foo/-bar        / Binary /- applied to foo and bar
+foo-/bar        / Binary -/ applied to foo and bar
+foo--bar        / Binary -- applied to foo and bar
+foo//bar        / Binary // applied to foo and bar
 
-3 + :4          / Three plus quoted four (which is a string)
-%3 + --5        / Unary % applied to 3, plus unary -- applied to 5 (it's up to the backend to decide whether this is valid)
+foo-            / Postfix unary - applied to foo
+foo/            / Postfix unary / applied to foo
+-foo            / Prefix unary - applied to foo
+/bar            / Prefix unary / applied to bar
+
+3 + :4          / Three plus prefix : applied to 4
+%3 + --5        / Unary % applied to 3, plus unary -- applied to 5 (it's up to the backend to decide whether this is semantically valid)
 ^&2 + ~~qr/foo/ / Unary ^& applied to 2, plus unary ~~ applied to the quoted regexp foo
-^!@qr foo       / Unary ^!@ applied to the quoted regexp foo
+^!@qr+foo+      / Unary ^!@ applied to the quoted regexp foo
 
 $foo            / Unary $ applied to foo
 foo $bar        / Foo joined with unary $ applied to bar
@@ -72,24 +81,23 @@ foo.bar         / Binary . applied to foo and bar
 foo. bar        / Postfix . applied to foo, joined with bar
 foo .bar        / Foo joined with prefix . applied to bar
 
+foo.            / Postfix . applied to foo, joined with bar
+bar
+
 foo::bar        / Binary :: applied to foo and bar
 foo:: bar       / Postfix unary :: applied to foo, joined with bar
 foo: :bar       / Postfix unary : applied to foo, joined with quoted word bar
 foo: : :bar     / Binary : applied to postfix unary : applied to foo, and quoted word bar
 foo: : : bar    / Ditto
 
-:qr             / Invalid: expected quoted regular expression
-:qr foo         / Unary : applied to quoted regular expression foo
-::qr foo        / Unary prefix :: applied to quoted regular expression foo
-::qr(foo)       / Ditto
-::qr            / Invalid: expected quoted regular expression
-
-qs foo + 4      / Binary +
-qs(foo)+ 4      / Postfix unary + and join
+qs+foo+ + 4     / Binary +
+qs+foo++ 4      / Postfix unary + and join
+qs(foo)+ 4      / Ditto
 qs/foo/+ 4      / Ditto
 qs/foo/ + 4     / Binary +
 
-foo, bar, bif   / Exceptional case: comma is always left-associative binary
+foo, bar, bif   / Exceptional case: comma is always left-associative binary, and it separates other operators
+foo+,+bar       / Postfix + applied to foo, comma prefix + applied to bar
 foo,            / Invalid: expected expression for comma
 
 3 // 4          / Binary // applied to 3 and 4
@@ -113,6 +121,7 @@ foo,            / Invalid: expected expression for comma
 3 V 4           / Exceptional case: binary V applied to 3 and 4
 3 U 4           / Exceptional case: binary U applied to 3 and 4
 f O g           / Exceptional case: binary O applied to f and g
+                / In fact, all uppercase letters are operators. The only limitation is that you can't put one after a /, since that would start a comment.
 
 foo@bar.com                             / Binary @ applied to foo and binary . applied to bar and com
 http://foo.com                          / Binary :// applied to http and binary . applied to foo and com

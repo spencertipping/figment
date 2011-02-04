@@ -21,16 +21,11 @@ foo''                   / Exceptional case: identifier foo''
 foo-bar                 / Exceptional case: identifier foo-bar
 
 :quoted-word            / A quoted word (by convention, a prefix : quotes something; but this is semantic rather than syntactic)
-qq quoted-word          / Another way to say it, but with stronger binding
 
 3.141592                / A floating-point number
 3                       / An integer
 -3                      / Unary negation, then an integer
                         / For sanity's sake, numbers can't start with a period.
-
-qn 3.141592             / A way to quote a number (though why bother, really)
-qn 3                    / Another quoted number
-qn -3                   / Forces the - to be a part of the number, rather than being applied later as an operator
 
 true                    / Identifier true
 
@@ -60,7 +55,6 @@ qr'^foo$'
 qr"^foo$"
 qr+^foo$+
 qr|^foo$|
-qr ^foo$                / Space is the delimiter
 
 Unquoting.
 Quoting is done with q, so unquoting is done with Q:
@@ -68,7 +62,7 @@ Quoting is done with q, so unquoting is done with Q:
 'string literal Q(4 + 5)'       / Becomes 'string literal 9', assuming sensible definition of numeric +
 qs[(foo) bar Q[bif]]            / Becomes a syntax tree representing (foo) <join> bar <join> whatever bif is
 'string literal Qfoo'           / No unquoting here; Q must be followed by a delimiter
-'string literal Q foo '         / Unquoting, equivalent to Q(foo)
+'string literal Q/foo/'         / Unquoting, equivalent to Q(foo)
 'string literal \Q foo '        / No unquoting, since Q is escaped
 
 Unquoting can be prevented by using an unquote-proof quotation form. These are upper-cased:
