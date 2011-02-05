@@ -1,0 +1,1 @@
+qregexp|(http://)?(www\.)?\w(\.com)?(/\w+)*|
