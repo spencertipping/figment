@@ -18,7 +18,7 @@ syn sync fromstart
 setlocal iskeyword=39,45,47,48-57,a-z,95       " Digits, single quote, _, -, /, and lowercase letters
 
 " Operators.
-syn match figOperator /[-A-Z~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}/
+syn match figOperator /[-A-Z~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}'*/
 
   hi link figOperator Operator
 
@@ -28,7 +28,7 @@ syn match  figSDocHeader        /\(^$\n^\|\%^\)\s*[A-Z].\{,60\}\.$/ contained
 syn region figSDocNumberedList  start=/^\s*|\s*\d\{1,2\}\.\s\{1,2\}[A-Za-z]/me=e-1 end=/^$\|\%$/ contains=sdNumberedItem transparent
 syn match  figSDocNumberedItem  /^\s*|\?\s*\d\{1,2\}\.\s\{1,2\}/ contained
 
-syn match  figLineComment       /\/\s*[A-Z].*$/
+syn match  figLineComment       /[-\/]\s*[A-Z].*$/
 
   hi link figBlockComment       Comment
   hi link figLineComment        Comment

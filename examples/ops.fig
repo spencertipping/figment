@@ -12,19 +12,22 @@ By convention, a prefix unary : quotes things. However, this meaning isn't unive
 3/4 + 5         / Divide binds first
 3/ 4 + 5        / Postfix (/ applied to 3) joined with 4, plus 5
 
-foo+bar         / Binary + applied to foo and bar
-foo*bar         / Binary * applied to foo and bar
-foo-bar         / Exceptional case: identifier foo-bar
-foo/bar         / Exceptional case: identifier foo/bar
-foo/-bar        / Binary /- applied to foo and bar
-foo-/bar        / Binary -/ applied to foo and bar
-foo--bar        / Binary -- applied to foo and bar
-foo//bar        / Binary // applied to foo and bar
+3 +' 4          - Binary +' applied to 3 and 4
+3 --' 4         - Binary --' applied to 3 and 4
 
-foo-            / Postfix unary - applied to foo
-foo/            / Postfix unary / applied to foo
--foo            / Prefix unary - applied to foo
-/bar            / Prefix unary / applied to bar
+foo+bar         - Binary + applied to foo and bar
+foo*bar         - Binary * applied to foo and bar
+foo-bar         - Exceptional case: identifier foo-bar
+foo/bar         - Exceptional case: identifier foo/bar
+foo/-bar        - Binary /- applied to foo and bar
+foo-/bar        - Binary -/ applied to foo and bar
+foo--bar        - Binary -- applied to foo and bar
+foo//bar        - Binary // applied to foo and bar
+
+foo-            - Postfix unary - applied to foo
+foo/            - Postfix unary / applied to foo
+-foo            - Prefix unary - applied to foo
+/bar            - Prefix unary / applied to bar
 
 3 + :4          / Three plus prefix : applied to 4
 %3 + --5        / Unary % applied to 3, plus unary -- applied to 5 (it's up to the backend to decide whether this is semantically valid)
