@@ -1,5 +1,9 @@
 Figment - a dynamically typed programming language with no defined semantics
 
+Acknowledgements: This project makes liberal use of Chris Double's jsparse,
+downloaded from github.com/doublec/jsparse.git. If you haven't checked it out,
+you probably should. It's awesome.
+
 Figment is a programming language unburdened with preconceived notions about
 purpose and operational semantics. Its purpose is to be anything and everything
 to anyone and everyone who uses it in any capacity. The core design principles
