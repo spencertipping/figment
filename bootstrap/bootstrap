@@ -2442,6 +2442,7 @@ for my $to_be_deleted (@_) {
 delete @data{@_};
 __963fdd3d9f6a0ba279b001b1f5679a38
 
+meta::function('run', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::main/], @_);');
 meta::function('run-forever', <<'__76175932a2d2692fc802856c28d0848d');
 # Runs your application indefinitely, restarting each time it fails.
 # There's a one-second delay between restarts to prevent a tight loop.
@@ -3815,24 +3816,28 @@ __b058828a5b55f650e5457f6b0df06301
 
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::main', <<'__fdd61a8dc50c5557250ad2e51b024183');
+meta::sdoc('js::main', <<'__706a0c0682e7171e13d14bf4f92fa104');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
-caterwaul.clone('std configuration seq')(function () {
-  seq[~process.argv *[require('fs').readFileSync(_)] *[parse(_)] *![process.stdout.write(JSON.stringify(_))]],
+caterwaul.clone('std continuation seq')(function () {
+  defsubst[forward[_x]][_x = fn_[_x.apply(this, arguments)]];
+
+  seq[~process.argv.slice(2) *[require('fs').readFileSync(_)] *[parse(_)] *![process.stdout.write(JSON.stringify(_))]],
   where*[
-    oneof(cs) = choice.apply(this, cs.split('')), whitespace = repeat1(oneof('\t\n\r ')),
+    forward[expression],
+
+    oneof(cs) = choice.apply(this, cs.split('')), whitespace = repeat1(oneof('\t\n\r ')), eol = oneof('\n\r'),
 
     identifier   = l*[first = oneof('abcdefghijklmnoprstuvwxyz_'), alt = oneof('-/'), middle = choice(first, oneof('q0123456789')), rest = choice(sequence(alt, middle), middle)] in
                    action(sequence(first, join_action(repeat0(rest), '')), _) /cps.ast[ast[0].concat(ast[1])],
-    operator     = l*[first = oneof('`~!@#$%^&*-+=\\|;:<>,./?ABCDEFGHIJKLMNOPQRSTUVWXYZ'), rest = repeat0(choice(start, oneof('\'')))] in sequence(first, rest),
+    operator     = l*[first = oneof('`~!@#$%^&*-+=\\|;:<>./?ABCDEFGHIJKLMNOPQRSTUVWXYZ'), rest = repeat0(choice(first, oneof('\'')))] in sequence(first, rest),
     number       = l*[digit = oneof('0123456789'), integer = repeat1(digit),
                       floating = sequence(repeat1(digit), '.', repeat0(digit), optional(sequence(oneof('eE'), optional(oneof('+-')), integer)))] in choice(integer, floating),
 
     qdelim(x, b) = l*[same(c) = sequence(c, x(c), c)] in choice(sequence('(', b(')'), ')'), sequence('[', b(']'), ']'), sequence('{', b('}'), '}'),
                                                                 same('|'), same('+'), same('/'), same('\''), same('"')),
-    unquoted(d)  = repeat0(choice(sequence('\\', negate(nothing_p)), sequence('Q', qdelim(expression, expression)), negate(d))),
+    unquoted(d)  = repeat0(choice(sequence('\\', negate(nothing_p)), sequence('Q', qdelim(fn_[expression], fn_[expression])), negate(d))),
     nunquoted(d) = repeat0(negate(d)),
 
     bracketed(x) = choice(sequence('(', x(')'), ')'), sequence('[', x(']'), ']'), sequence('{', x('}'), '}')),
@@ -3842,14 +3847,24 @@ caterwaul.clone('std configuration seq')(function () {
     string       = l*[delimited_by(x) = sequence(x, unquoted(x), x)] in choice(delimited_by('\''), delimited_by('"')),
     quoted       = choice(sequence('q', range('A', 'Z'), identifier, qdelim(nunquoted, nunquoteb)), sequence('q', range('a', 'z'), identifier, qdelim(unquoted, unquoteb))),
 
-    value        = choice(identifier, number, string, quoted, sequence(operator, identifier), sequence(value, operator, expect(whitespace))),
-    tbinary      = choice(value, brackete, sequence(value, operator, value)),
-    lbinary      = sequence(value, whitespace, operator, whitespace, value),
-    join         = sequence(value, whitespace, value),
+    value        = choice(bracketed(fn_[expression]), identifier, number, string, quoted),
+    prefix       = choice(value, sequence(operator, value)),
+    postfix      = sequence(prefix, optional(operator)),
+    tbinary      = choice(postfix, sequence(postfix, operator, postfix)),
+    join         = sequence(tbinary, whitespace, tbinary),
+    lbinary      = sequence(join, whitespace, operator, whitespace, join),
 
-    expression   = 
-    ]});
-__fdd61a8dc50c5557250ad2e51b024183
+    expression   = choice(sequence(lbinary, optional(whitespace), ',', optional(whitespace), expression), lbinary),
+
+    pbreak       = sequence(choice(sequence(eol, eol), sequence(repeat0(whitespace), end_p)), repeat0(eol)),
+
+    lcomment     = sequence(whitespace, '/', optional(whitespace), range('A', 'Z'), repeat0(negate(eol)), eol),
+    cparagraph   = expression,
+    lparagraph   = sequence(choice(range('A', 'Z'), '|'), repeat0(negate(pbreak))),
+
+    paragraph    = choice(lparagraph, cparagraph),
+    parse        = repeat0(sequence(paragraph, pbreak))]})();
+__706a0c0682e7171e13d14bf4f92fa104
 
 internal::main();
 
