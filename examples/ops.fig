@@ -23,8 +23,6 @@ foo-/bar        - Binary -/ applied to foo and bar
 foo--bar        - Binary -- applied to foo and bar
 foo//bar        - Binary // applied to foo and bar
 
-foo-            - Postfix unary - applied to foo
-foo/            - Postfix unary / applied to foo
 -foo            - Prefix unary - applied to foo
 /bar            - Prefix unary / applied to bar
 
