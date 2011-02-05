@@ -3596,7 +3596,7 @@ __b058828a5b55f650e5457f6b0df06301
 
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::main', <<'__f894af49761f7ed0d678dd16fc678333');
+meta::sdoc('js::main', <<'__08cf5603eed8bdddbd58a357379956dd');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3613,7 +3613,7 @@ caterwaul.clone('std continuation seq')(function (require) {
     jr1(x)    = j(repeat1(x)),
     r0s()     = repeat0(sequence.apply(this, arguments)),
     r1s()     = repeat1(sequence.apply(this, arguments)),
-    tag(x, p) = action(p, fn[xs][{} /se[_[x] = p]]),
+    tag(x, p) = action(p, fn[xs][{} /se[_[x] = xs]]),
 
     oneof(cs) = choice.apply(this, cs.split('')), whitespace = repeat1(oneof('\t\n\r ')), eol = sequence(repeat0(' \t'), oneof('\n\r')),
 
@@ -3635,17 +3635,20 @@ caterwaul.clone('std continuation seq')(function (require) {
     unquoteb(d)    = jr0(choice(bracketed(unquoteb),  unquoted(d))),
     nunquoteb(d)   = jr0(choice(bracketed(nunquoteb), nunquoted(d))),
 
-    string       = l*[delimited_by(x) = sequence(x, unquoted(x), x)] in tag('string', choice(delimited_by('\''), delimited_by('"'))),
+    string       = l*[delimited_by(x) = sequence(x, unquoted(x), x)] in action(choice(delimited_by('\''), delimited_by('"')), fn[xs][{string: xs[1], delimiter: xs[0]}]),
 
     lcomment     = tag('lcomment', js(oneof('-/'), optional(whitespace), range('A', 'Z'), jr0(negate(eol)), choice(eol, end_p))),
-    quoted       = sequence('q', choice(sequence(js(range('A', 'Z'), identifier), qdelim(nunquoted, nunquoteb)), sequence(js(range('a', 'z'), identifier), qdelim(unquoted, unquoteb)))),
+    quoted       = action(sequence('q', choice(sequence(js(range('A', 'Z'), optional(identifier)), qdelim(nunquoted, nunquoteb)),
+                                               sequence(js(range('a', 'z'), optional(identifier)), qdelim(unquoted,  unquoteb)))),
+                          fn[xs][{quoted: xs[1][1][1], delimiter: xs[1][1][0], word: xs[1][0]}]),
+
     value        = choice(bracketed(fn_[expression]), lcomment, quoted, identifier, number, string),
 
-    forward[prefix],  prefix  = action(sequence(optional(operator), value), fn[xs][xs[0] ? {value: xs[1], prefix: xs[0]} : xs[1]]),
-    forward[postfix], postfix = ks('postfix', prefix,  r0s(operator)),
-    forward[tbinary], tbinary = ks('binary',  prefix,  r0s(operator, tbinary)),
-    forward[join],    join    = ks('join',    tbinary, r0s(whitespace, join)),
-    forward[lbinary], lbinary = ks('binary',  join,    action(r0s(whitespace, operator, whitespace, lbinary), fn[xs][seq[~xs *[[_[1], _[3]]]]])),
+    prefix       = action(sequence(optional(operator), value), fn[xs][xs[0] ? {value: xs[1], prefix: xs[0]} : xs[1]]),
+    postfix      = ks('postfix', prefix,  r0s(operator)),
+    tbinary      = ks('binary',  prefix,  r0s(operator, postfix)),
+    join         = ks('join',    tbinary, r0s(whitespace, tbinary)),
+    lbinary      = ks('binary',  join,    action(r0s(whitespace, operator, whitespace, join), fn[xs][seq[~xs *[[_[1], _[3]]]]])),
 
     expression   = ks('comma', lbinary, repeat0(sequence(optional(whitespace), ',', optional(whitespace), lbinary))),
 
@@ -3656,7 +3659,7 @@ caterwaul.clone('std continuation seq')(function (require) {
 
     paragraph    = choice(lparagraph, cparagraph),
     parse        = repeat0(action(sequence(paragraph, pbreak), fn[xs][xs[0]]))]})(require);
-__f894af49761f7ed0d678dd16fc678333
+__08cf5603eed8bdddbd58a357379956dd
 
 internal::main();
 
