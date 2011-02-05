@@ -58,10 +58,10 @@ syn match figCurlyError  /[)\]]/ contained containedin=figCurlyBrackets
   hi link figCurlyBracket       Special
 
 " Quotation and unquotation.
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+(/            end=/)/      contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+\[/           end=/]/      contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+{/            end=/}/      contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-z]\+\z([+/"'|]\)/ end=/\z1\|$/ contains=figUnquote,figEscape
+syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+(/            end=/)/      contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+\[/           end=/]/      contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+{/            end=/}/      contains=figUnquote,figEscape,@figBrackets
+syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+\z([+/"'|]\)/ end=/\z1\|$/ contains=figUnquote,figEscape
 
 syn region figSingleString matchgroup=figStringDelimiter start=/\<'/ end=/'/ contains=figUnquote,figEscape
 syn region figDoubleString matchgroup=figStringDelimiter start=/"/   end=/"/ contains=figUnquote,figEscape

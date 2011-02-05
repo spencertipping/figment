@@ -3596,7 +3596,7 @@ __b058828a5b55f650e5457f6b0df06301
 
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::main', <<'__df1ba2a3febb67958ca85f99cbe6d17f');
+meta::sdoc('js::main', <<'__64b58814c02ec51b68944bcb07e05b99');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3618,7 +3618,7 @@ caterwaul.clone('std continuation seq')(function (require) {
 
     oneof(cs) = choice.apply(this, cs.split('')), whitespace = repeat1(oneof('\t\n\r ')), eol = sequence(repeat0(' \t'), oneof('\n\r')),
 
-    identifier   = l*[first = oneof('abcdefghijklmnoprstuvwxyz_'), alt = oneof('-/'), middle = choice(first, oneof('q0123456789')), rest = js(optional(alt), middle)] in
+    identifier   = l*[first = oneof('abcdefghijklmnopqrstuvwxyz_'), alt = oneof('-/'), middle = choice(first, oneof('0123456789')), rest = js(optional(alt), middle)] in
                    js(first, jr0(rest), jr0(oneof('\''))),
 
     operator     = js(jr1(oneof('`~!@#$%^&*-+=\\|;:<>./?')), jr0(oneof('\''))),
@@ -3640,7 +3640,7 @@ caterwaul.clone('std continuation seq')(function (require) {
 
     lcomment     = tag('lcomment', js(oneof('-/'), optional(whitespace), range('A', 'Z'), jr0(negate(eol)), choice(eol, end_p))),
     quoted       = action(sequence('q', choice(sequence(js(range('A', 'Z'), jr0(range('a', 'z'))), qdelim(nunquoted, nunquoted)),
-                                               sequence(js(range('a', 'z'), jr0(range('a', 'z'))), qdelim(unquoted,  unquoted)))),
+                                               sequence(js(choice(range('a', 't'), range('v', 'z')), jr0(range('a', 'z'))), qdelim(unquoted,  unquoted)))),
                           fn[xs][{quoted: xs[1][1].value, delimiter: xs[1][1].delimiter, word: xs[1][0]}]),
 
     value        = choice(bracketed(fn_[expression]), quoted, identifier, number, string),
@@ -3660,7 +3660,7 @@ caterwaul.clone('std continuation seq')(function (require) {
 
     paragraph    = choice(lparagraph, cparagraph),
     parse        = repeat0(action(sequence(paragraph, pbreak), fn[xs][xs[0]]))]})(require);
-__df1ba2a3febb67958ca85f99cbe6d17f
+__64b58814c02ec51b68944bcb07e05b99
 
 internal::main();
 
