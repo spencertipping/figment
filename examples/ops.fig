@@ -10,7 +10,6 @@ By convention, a prefix unary : quotes things. However, this meaning isn't unive
 3+4/5           / Binary / applied to binary + applied to 3 and 4, and 5
 3+4 / 5         / Plus binds first
 3/4 + 5         / Divide binds first
-3/ 4 + 5        / Postfix (/ applied to 3) joined with 4, plus 5
 
 3 +' 4          - Binary +' applied to 3 and 4
 3 --' 4         - Binary --' applied to 3 and 4
@@ -81,11 +80,8 @@ int x = 5       / S-expression is (= (join int x) 5)
 int x = 5, y    / S-expression is (, (= (join int x) 5) y)
 
 foo.bar         / Binary . applied to foo and bar
-foo. bar        / Postfix . applied to foo, joined with bar
+foo. bar        / Ditto
 foo .bar        / Foo joined with prefix . applied to bar
-
-foo.            / Postfix . applied to foo, joined with bar
-bar
 
 foo::bar        / Binary :: applied to foo and bar
 foo:: bar       / Postfix unary :: applied to foo, joined with bar
