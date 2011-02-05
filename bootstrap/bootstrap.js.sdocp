@@ -1,1 +1,0 @@
-sdocp('bootstrap.js.sdoc', 'Bootstrap Figment parser | Spencer Tipping\nLicensed under the terms of the MIT source code license\n\nvar jsparse = require(\'./jsparse.js\');\nfor (var k in jsparse) global[k] = jsparse[k];\n\nvar oneof      = function (cs) {return choice.apply(this, cs.split(\'\'))};\nvar whitespace = oneof(\'\\t \\n\\r\');\n');
