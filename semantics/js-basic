@@ -1985,7 +1985,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 
 meta::data('main', 'server.js');
-meta::data('name', 'figment');
+meta::data('name', 'js-basic');
 meta::data('quiet', '1');
 meta::data('watching', '1');
 meta::function('cat', 'join "\\n", retrieve(@_);');
@@ -3567,6 +3567,37 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
+meta::note('conversion-logic', <<'__c56d6ab6b3db795f8752ad0850a5d5ad');
+Figment -> JS conversion logic.
+This is not entirely straightforward, as Figment is much more general than Javascript. However, we can map a subset of Figment constructs onto Javascript, and because Figment is emitted as
+JSON we can allow the syntax to be introspected as well. So the challenge is providing a runtime Figment compiler along with the generated code, since otherwise we have quadratic expansion or
+an involved translator. Fortunately Caterwaul is ideally suited for this purpose.
+
+Operators.
+Valid JS operators are translated directly, though precedence isn't respected; that is, the operator precedence is assumed to go strictly from left to right. Because there are no
+word-operators in Figment, things like 'instanceof', 'delete', 'in', 'new', etc. are represented as joins:
+
+| x instanceof y
+  x if[y] else[z]       / Becomes (x) ? (y) : (z)
+  x new
+
+Normal unary and binary operators are translated normally:
+
+| x + y         / Becomes x + y
+  x + y * z     / Becomes (x + y) * z -- no precedence left-associative
+__c56d6ab6b3db795f8752ad0850a5d5ad
+
+meta::parent('../figment', <<'__ed4695db20d964262bf4658c1e5a950f');
+function::parse
+js::jsparse
+meta::type::fig
+parent::/home/spencertipping/bin/node-base
+parent::development
+sdoc::js::figment-parser
+sdoc::js::parse-json
+vim_highlighter::figment
+__ed4695db20d964262bf4658c1e5a950f
+
 meta::parent('./sdoc', <<'__b058828a5b55f650e5457f6b0df06301');
 function::sdoc
 meta::type::sdoc
@@ -3887,6 +3918,19 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
 
     paragraph    = choice(lparagraph, cparagraph)]})(require);
 __60f54c3456e411a9f46d6081dcbbb2c3
+
+meta::sdoc('js::figment-to-js', <<'__be8fb6962fa45b7d9c6b7d2f6f6c7ade');
+Figment to JS conversion | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+js_from_figment takes either a string of Figment source, or a parse tree for a string, and returns a Caterwaul source tree that, when compiled and run, behaves basically like Javascript. There
+are a number of undefined aspects of the Figment source, however; this provides room for expansion.
+
+js_from_figment = caterwaul.clone('std continuation seq')(function (parse_tree) {
+  parse_tree.constructor === String && (parse_tree = parse_figment(parse_tree));
+  
+__be8fb6962fa45b7d9c6b7d2f6f6c7ade
 
 meta::sdoc('js::parse-json', <<'__49247e5ac7224cbc079d0c09bc82bff3');
 Figment parser runtime | Spencer Tipping

@@ -1985,7 +1985,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 
 meta::data('main', 'server.js');
-meta::data('name', 'figment');
+meta::data('name', 'core');
 meta::data('quiet', '1');
 meta::data('watching', '1');
 meta::function('cat', 'join "\\n", retrieve(@_);');
@@ -3567,6 +3567,17 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
+meta::parent('../figment', <<'__ed4695db20d964262bf4658c1e5a950f');
+function::parse
+js::jsparse
+meta::type::fig
+parent::/home/spencertipping/bin/node-base
+parent::development
+sdoc::js::figment-parser
+sdoc::js::parse-json
+vim_highlighter::figment
+__ed4695db20d964262bf4658c1e5a950f
+
 meta::parent('./sdoc', <<'__b058828a5b55f650e5457f6b0df06301');
 function::sdoc
 meta::type::sdoc
