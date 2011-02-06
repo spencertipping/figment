@@ -16,8 +16,8 @@ are:
 5. Perl - Perl is awesome, so use (steal) features from it
 
 The Figment -> JSON parser is maintained as a self-modifying Perl file called
-parse-json. You can run it like this:
+figment. You can run it like this:
 
-$ ./parse-json run test/op1.fig
+$ ./figment parse examples/ops.fig
 
 It prints its output to stdout.
