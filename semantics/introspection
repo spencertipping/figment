@@ -2353,6 +2353,36 @@ caterwaul.clone('std continuation seq')(function () {
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
 __b2b3dea79e6d16a85f2da25d0fce7d64
 
+meta::sdoc('js::javascript-visitor', <<'__a97c471975ae3484d2e694738c898a10');
+Javascript visitor interpretation context | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+This interpretation context runs in Javascript and provides semantics for a subset of the operations in the Figment parse tree. It makes extensive use of Caterwaul to construct, compile, and
+evaluate syntax trees.
+
+Transformation features.
+The transformation implemented here is fairly basic. Unary and binary operators are considered to be messages passed to objects (with the exception of JS primitives such as +, -, =, etc, which
+are rendered normally). Strings are quoted normally, regular expressions are accessible via qr[], and numbers, arrays, and object literals are converted transparently.
+
+Operator invocations are parenthesized. An exception to this is :, which is left flat due to its involvement with constructing object literals.
+
+Interpretation context.
+Because this is a toplevel interpretation context, it provides a global environment and some other stuff required to get the script off the ground. The script that gets run will have access to
+the same global environment, which, because this is powered by Node, enables webservers to be written directly in Figment. For convenience a global function 'require' is created; this maps
+directly onto Node's require() function.
+
+The interpretation context also provides hooks to install other interpretation contexts; these are similar to Caterwaul compiler functions in semantics. The way this ends up working is that
+you start off in a Javascript-visitor toplevel, but you can customize the compiler before loading code. For instance:
+
+| javascript_visitor.new _se[it _extend  debugging_visitor.new,
+                             it _compile 'foo.fig']
+
+javascript_visitor = caterwaul.clone('std continuation seq')(function () {
+  
+});
+__a97c471975ae3484d2e694738c898a10
+
 meta::sdoc('js::parse-json', <<'__d3d72ad290f81c11e38f4a93baf12f49');
 Figment parser runtime | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -2360,6 +2390,38 @@ Licensed under the terms of the MIT source code license
 caterwaul.clone('std continuation seq')(function (require) {
   seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')] *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_) + '\n')]]})(require);
 __d3d72ad290f81c11e38f4a93baf12f49
+
+meta::sdoc('js::visitor', <<'__ae93d2b4d432e9da7881d10925930be1');
+Visitor function | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+The visitor function provides a convenient paradigm for mapping over a Figment syntax tree. A visitor provides a two-level function. The toplevel is invoked for each paragraph, and the inner
+level is invoked for each syntax node inside the paragraph. For example:
+
+| toplevel(function (paragraph, i) {
+    if (paragraph[0] === 'literate') visit_comment(paragraph[1]);
+    else paragraph(function (node) {
+      console.log('Got a node: ' + (node instanceof Array ? node[0] : node));
+    });
+  });
+
+Traversal ordering.
+Traversal is generally straightforward; it works like this (pseudocode):
+
+| T[f, binary(op, x, y)]                = f(node), T[f, x], T[f, y]
+  T[f, unary(op, x)]                    = f(node), T[f, x]
+  T[f, string(delimiter, pieces)]       = f(node), pieces.each(piece -> T[f, piece])
+  T[f, quoted(word, delimiter, pieces)] = f(node), pieces.each(piece -> T[f, piece])
+  T[f, atom]                            = f(node)
+
+visitor = caterwaul.clone('std continuation seq')(function (tree) {
+  tree = parse_figment(tree), when[tree.constructor === String];
+  return _ /cps.f[seq[~tree *+paragraph_visitor *+f]],
+  where*[
+    paragraph_visitor(p)(f) = 
+  ]});
+__ae93d2b4d432e9da7881d10925930be1
 
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__7be1d470a07a06c58e971bc7fc24c048');
