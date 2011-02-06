@@ -1988,6 +1988,19 @@ meta::data('main', 'server.js');
 meta::data('name', 'core');
 meta::data('quiet', '1');
 meta::data('watching', '1');
+meta::fig('syntax', <<'__30e928b476138232b2dbc18b700de72c');
+Figment syntax transformation library | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+This module provides semantic-independent manipulation of Figment source trees. It's important for macroexpansion and provides a good example of writing code whose behavior is initially
+unknown. The model is that Figment trees are layered; at the toplevel they consist of paragraphs, then of comma-separated values, then of loose binary associations, then loose joins, then
+tight binary associations, then prefix operators, and finally tight joins. This library serves two purposes. One is to assign a strictly hierarchical structure to those layers (i.e. by
+imposing proper operator precedence and associativity), and the other is to support a set of operators to quote and match against trees.
+
+
+__30e928b476138232b2dbc18b700de72c
+
 meta::function('cat', 'join "\\n", retrieve(@_);');
 meta::function('child', <<'__3eeb4b4fd37a502b53f0008e7835b5de');
 my ($child_name) = @_;
@@ -3927,7 +3940,7 @@ return '' if template::failing_conditional($commands);
 join "\n", map retrieve($_), split /\s+/, $commands;
 __e0624844a65ae41e0217dd871fc0dbfb
 
-meta::vim_highlighter('figment', <<'__4e375c731a7a99914919f032b6608385');
+meta::vim_highlighter('figment', <<'__96fa45aa4fca12dedc9e4495f9e495df');
 " Vim syntax file
 " Language:   Figment
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
@@ -3948,7 +3961,7 @@ syn sync fromstart
 setlocal iskeyword=39,45,47,48-57,a-z,95       " Digits, single quote, _, -, /, and lowercase letters
 
 " Operators.
-syn match figOperator /[-A-Z~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}'*/
+syn match figOperator /[-~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}'*/
 
   hi link figOperator Operator
 
@@ -4027,7 +4040,7 @@ syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
   hi link figFloat   Number
 
 let b:current_syntax = "figment"
-__4e375c731a7a99914919f032b6608385
+__96fa45aa4fca12dedc9e4495f9e495df
 
 internal::main();
 
