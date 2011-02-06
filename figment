@@ -587,7 +587,6 @@ with_exported(@_, sub {
 });
 __50666d988e8596c897694fc9f0cdcce9
 
-meta::function('parse-test', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('perl', <<'__f2b57dd342923797e8e2287c3095803f');
 my $result = eval(join ' ', @_);
 $@ ? terminal::message('error', $@) : $result;
@@ -855,6 +854,7 @@ hook('bin/after-test');
 $failures;
 __ea30e1e2f7cb5bb44277a6bd47508dba
 
+meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
 meta::function('update', '&{\'update-from\'}(@_, grep s/^parent:://o, sort keys %data);');
 meta::function('update-from', <<'__d0de3a29902618c0457d2e76a1828d9b');
