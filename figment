@@ -1921,6 +1921,17 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
+meta::note('parse-specs', <<'__0252e9ccc128d793d2b6566a30203cb8');
+Parsing specs.
+Parsing works in a fairly straightforward way, but it does have some quirks. Among them are:
+
+| 1. All binary operators associate right by default. This may or may not be desirable.
+  2. Precedence is unencoded in the parse tree, but instantiation-specific spacing is encoded. For example, 3+4 * 5 results in the + binding before *, defying both intuition and
+     right-associativity.
+  3. Paragraphs are assumed to be side-effectful and self-contained. However, paragraph breaks don't happen inside expressions; for example, opening a paren and then creating a paragraph break
+     has no effect because the paren group is the active parse state. (This can be undesirable; it requires the host semantics to allow file-specific context.)
+__0252e9ccc128d793d2b6566a30203cb8
+
 meta::parent('./sdoc', <<'__b058828a5b55f650e5457f6b0df06301');
 function::sdoc
 meta::type::sdoc
@@ -2179,7 +2190,7 @@ __1258d5867978f2068c8efd130c2066f7
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__a715e30fa6ad38c283b4f5b7f85757c7');
+meta::sdoc('js::figment-parser', <<'__1c9b441284219e73dd919063a8e4941d');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2242,10 +2253,10 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     pbreak       = sequence(choice(sequence(eol, eol), sequence(repeat0(whitespace), end_p)), repeat0(eol)),
 
     cparagraph   = action(sequence(optional(whitespace), expression), fn[xs][xs[1]]),
-    lparagraph   = tag('lparagraph', js(choice(range('A', 'Z'), '|'), jr0(negate(pbreak)))),
+    lparagraph   = tag('lparagraph', js(optional(whitespace), choice(range('A', 'Z'), '|'), jr0(negate(pbreak)))),
 
     paragraph    = choice(lparagraph, cparagraph)]})(require);
-__a715e30fa6ad38c283b4f5b7f85757c7
+__1c9b441284219e73dd919063a8e4941d
 
 meta::sdoc('js::figment-parser-tests', <<'__903bd65ffc6b09a97127b6474706606c');
 Unit tests for Figment parser | Spencer Tipping
@@ -2284,13 +2295,13 @@ caterwaul.clone('std continuation seq')(function () {
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
 __903bd65ffc6b09a97127b6474706606c
 
-meta::sdoc('js::parse-json', <<'__49247e5ac7224cbc079d0c09bc82bff3');
+meta::sdoc('js::parse-json', <<'__d3d72ad290f81c11e38f4a93baf12f49');
 Figment parser runtime | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
 caterwaul.clone('std continuation seq')(function (require) {
-  seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')] *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_))]]})(require);
-__49247e5ac7224cbc079d0c09bc82bff3
+  seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')] *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_) + '\n')]]})(require);
+__d3d72ad290f81c11e38f4a93baf12f49
 
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__7be1d470a07a06c58e971bc7fc24c048');
