@@ -18,7 +18,8 @@ are:
 The Figment -> JSON parser is maintained as a self-modifying Perl file [1]
 called figment. You can run it like this:
 
-$ ./figment parse examples/ops.fig
+$ ./figment parse examples/ops.fig      # Parse a file
+$ ./figment parse "id::3 + 5"           # Parse the string '3 + 5'
 
 It prints its output to stdout.
 
