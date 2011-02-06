@@ -2190,7 +2190,7 @@ __1258d5867978f2068c8efd130c2066f7
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__1c9b441284219e73dd919063a8e4941d');
+meta::sdoc('js::figment-parser', <<'__74aa0fe32bc30019860ddb66b63c3d62');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2210,7 +2210,6 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     jr1(x)    = j(repeat1(x)),
     r0s()     = repeat0(sequence.apply(this, arguments)),
     r1s()     = repeat1(sequence.apply(this, arguments)),
-    tag(x, p) = action(p, fn[xs][{} /se[_[x] = xs]]),
 
     oneof(cs) = choice.apply(this, cs.split('')), whitespace = jr1(oneof('\t\n\r ')), eol = js(jr0(' \t'), oneof('\n\r')),
 
@@ -2253,10 +2252,10 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     pbreak       = sequence(choice(sequence(eol, eol), sequence(repeat0(whitespace), end_p)), repeat0(eol)),
 
     cparagraph   = action(sequence(optional(whitespace), expression), fn[xs][xs[1]]),
-    lparagraph   = tag('lparagraph', js(optional(whitespace), choice(range('A', 'Z'), '|'), jr0(negate(pbreak)))),
+    lparagraph   = action(js(optional(whitespace), choice(range('A', 'Z'), '|'), jr0(negate(pbreak))), fn[x][['lparagraph', x]]),
 
     paragraph    = choice(lparagraph, cparagraph)]})(require);
-__1c9b441284219e73dd919063a8e4941d
+__74aa0fe32bc30019860ddb66b63c3d62
 
 meta::sdoc('js::figment-parser-tests', <<'__903bd65ffc6b09a97127b6474706606c');
 Unit tests for Figment parser | Spencer Tipping
