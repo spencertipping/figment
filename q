@@ -15,10 +15,10 @@ sub meta::define_form {
   $datatypes{$namespace} = $delegate;
   *{"meta::${namespace}::implementation"} = $delegate;
   *{"meta::$namespace"} = sub {
-    my ($name, $value) = @_;
+    my ($name, $value, %options) = @_;
     chomp $value;
-    $data{"${namespace}::$name"} = $value;
-    $delegate->($name, $value);
+    $data{"${namespace}::$name"} = $value unless $options{no_binding};
+    $delegate->($name, $value) unless $options{no_delegate};
   };
 }
 
@@ -167,6 +167,14 @@ meta::define_form 'parent', \&meta::bootstrap::implementation;
 meta::configure 'parent', extension => '', inherit => 1;
 __607e9931309b1b595424bedcee5dfa45
 
+meta::meta('type::retriever', <<'__6e847a9d205e4a5589765a3366cdd115');
+meta::configure 'retriever', extension => '.pl', inherit => 1;
+meta::define_form 'retriever', sub {
+  my ($name, $value) = @_;
+  $transient{retrievers}{$name} = meta::eval_in("sub {\n$value\n}", "retriever::$name");
+};
+__6e847a9d205e4a5589765a3366cdd115
+
 meta::meta('type::state', <<'__c1f29670be26f1df6100ffe4334e1202');
 # Allows temporary or long-term storage of states. Nothing particularly insightful
 # is done about compression, so storing alternative states will cause a large
@@ -180,7 +188,7 @@ meta::define_form 'state', \&meta::bootstrap::implementation;
 __c1f29670be26f1df6100ffe4334e1202
 
 meta::meta('type::watch', 'meta::functor::editable \'watch\', prefix => \'watch::\', inherit => 1, extension => \'.pl\', default => \'cat\';');
-meta::bootstrap('initialization', <<'__c6305378e31dd4085d047ef943b4acdc');
+meta::bootstrap('initialization', <<'__2ee777615cfe1237872135fcc565cd54');
 #!/usr/bin/perl
 # Run perldoc on this file for documentation.
 
@@ -198,10 +206,10 @@ sub meta::define_form {
   $datatypes{$namespace} = $delegate;
   *{"meta::${namespace}::implementation"} = $delegate;
   *{"meta::$namespace"} = sub {
-    my ($name, $value) = @_;
+    my ($name, $value, %options) = @_;
     chomp $value;
-    $data{"${namespace}::$name"} = $value;
-    $delegate->($name, $value);
+    $data{"${namespace}::$name"} = $value unless $options{no_binding};
+    $delegate->($name, $value) unless $options{no_delegate};
   };
 }
 
@@ -222,7 +230,7 @@ meta::define_form 'meta', sub {
   meta::eval_in($value, "meta::$name");
 };
 
-__c6305378e31dd4085d047ef943b4acdc
+__2ee777615cfe1237872135fcc565cd54
 
 meta::bootstrap('perldoc', <<'__c63395cbc6f7160b603befbb2d9b6700');
 =head1 Self-modifying Perl script
@@ -320,15 +328,15 @@ join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
 
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
-meta::function('edit', <<'__5d833e46e6b01eda4902a6ddb0903bd9');
+meta::function('edit', <<'__b878c50c3d058d5a344dcb1f52b625a3');
 my ($name, %options) = @_;
-my $extension = $transient{extension}{namespace($name)} || '';
+my $extension = extension_for($name);
 
 die "Attribute $name does not exist." unless exists $data{$name};
 associate($name, invoke_editor_on($data{$name} || "# Attribute $name", %options, attribute => $name, extension => $extension),
           execute => $name !~ /^bootstrap::/);
 save();
-__5d833e46e6b01eda4902a6ddb0903bd9
+__b878c50c3d058d5a344dcb1f52b625a3
 
 meta::function('enable', 'chmod_self(sub {$_[0] | $_[0] >> 2});');
 meta::function('export', <<'__6c445eea603f9863df0f8db445fd708e');
@@ -423,7 +431,7 @@ verify();
 __91a4f89f4f1d3894d4cb122255f9c1bc
 
 meta::function('lock', 'chmod_self(sub {$_[0] & 0555});');
-meta::function('ls', <<'__0cb255913a5005bd062d1d5cede107fe');
+meta::function('ls', <<'__ad1a9fef60ec7c9d268ede65480d96a2');
 my ($options, @criteria) = separate_options(@_);
 my ($all, $shadows, $dereference, $sizes, $flags) = @$options{qw(-a -s -d -z -l)};
 $all   ||= $dereference;
@@ -435,7 +443,7 @@ my $criteria    = join('|', @criteria);
 my @definitions = select_keys('--criteria' => $criteria, %$options);
 
 my %inverses  = map {$externalized_functions{$_} => $_} keys %externalized_functions;
-my @externals = grep length, map $inverses{$_}, @definitions;
+my @externals = map $inverses{$_}, grep length, @definitions;
 my @internals = grep length $inverses{$_}, @definitions;
 my @sizes     = map sprintf('%6d %6d', length(serialize_single($_)), length(retrieve($_))), @{$all ? \@definitions : \@internals} if $sizes;
 
@@ -444,7 +452,7 @@ my @flags       = map {my $k = $_; join '', map($flag_hashes{$_}{$k} ? $_ : '-',
 
 join "\n", map strip($_), split /\n/, table_display($all ? [@definitions] : [grep length, @externals], $dereference ? ([@externals]) : (),
                                                     $sizes ? ([@sizes]) : (), $flags ? ([@flags]) : ());
-__0cb255913a5005bd062d1d5cede107fe
+__ad1a9fef60ec7c9d268ede65480d96a2
 
 meta::function('ls-a', 'ls(\'-ad\', @_);');
 meta::function('mv', <<'__09f350db8406303ade06d229477d79ad');
@@ -744,6 +752,12 @@ file::write($filename, cat(@_));
 $filename;
 __27414e8f2ceeaef3555b9726e690eb0f
 
+meta::internal_function('extension_for', <<'__65e48f50f20bc04aa561720b03bf494c');
+my $extension = $transient{extension}{namespace($_[0])};
+$extension = &$extension($_[0]) if ref $extension eq 'CODE';
+$extension || '';
+__65e48f50f20bc04aa561720b03bf494c
+
 meta::internal_function('fast_hash', <<'__ac70f469e697725cfb87629833434ab1');
 my ($data)     = @_;
 my $piece_size = length($data) >> 3;
@@ -856,10 +870,19 @@ $name =~ s/::.*$//;
 $name;
 __93213d60cafb9627e0736b48cd1f0760
 
-meta::internal_function('retrieve', <<'__0e9c1ae91f6cf6020cf1a05db7d51d72');
-my @results = map defined $data{$_} ? $data{$_} : file::read($_), @_;
+meta::internal_function('retrieve', <<'__0b6f4342009684fdfa259f45ac75ae37');
+my @results = map defined $data{$_} ? $data{$_} : retrieve_with_hooks($_), @_;
 wantarray ? @results : $results[0];
-__0e9c1ae91f6cf6020cf1a05db7d51d72
+__0b6f4342009684fdfa259f45ac75ae37
+
+meta::internal_function('retrieve_with_hooks', <<'__5186a0343624789d08d1cc2084550f3d');
+# Uses the hooks defined in $transient{retrievers}, and returns undef if none work.
+my ($attribute) = @_;
+my $result      = undef;
+
+defined($result = &$_($attribute)) and return $result for map $transient{retrievers}{$_}, sort keys %{$transient{retrievers}};
+return undef;
+__5186a0343624789d08d1cc2084550f3d
 
 meta::internal_function('select_keys', <<'__9f1f6ed4c1df5aa5f62cfd0ded8e6ae6');
 my %options   = @_;
@@ -1005,7 +1028,7 @@ meta::type::note
 parent::object
 __320d51928ec8e2e370d67d30abe059b5
 
-meta::parent('object', <<'__d2c11649577aad680b6bad821cf826a6');
+meta::parent('object', <<'__4d0e33987ce7bf61960b406ece50cef7');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -1053,6 +1076,7 @@ internal_function::complete
 internal_function::debug_trace
 internal_function::execute
 internal_function::exported
+internal_function::extension_for
 internal_function::fast_hash
 internal_function::file::read
 internal_function::file::write
@@ -1062,6 +1086,7 @@ internal_function::internal::main
 internal_function::invoke_editor_on
 internal_function::namespace
 internal_function::retrieve
+internal_function::retrieve_with_hooks
 internal_function::select_keys
 internal_function::separate_options
 internal_function::strip
@@ -1085,10 +1110,13 @@ meta::type::library
 meta::type::message_color
 meta::type::meta
 meta::type::parent
+meta::type::retriever
 meta::type::state
 meta::type::watch
-__d2c11649577aad680b6bad821cf826a6
+retriever::file
+__4d0e33987ce7bf61960b406ece50cef7
 
+meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 internal::main();
 
 __END__
