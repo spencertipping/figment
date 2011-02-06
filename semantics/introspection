@@ -296,7 +296,7 @@ meta::configuration('dependencies', <<'__8548df37a8c03740da742d1f650b6dd7');
 caterwaul.all.js: http://spencertipping.com/caterwaul/caterwaul.all.min.js
 __8548df37a8c03740da742d1f650b6dd7
 
-meta::data('current-continuation', 'figure out introspection modeling');
+meta::data('current-continuation', 'designing compiler interface');
 meta::data('default-action', 'shell');
 meta::data('libraries', <<'__cca38bdfe6664615b581ec6dff43cf46');
 # URLs of libraries to be downloaded into the lib/ directory.
@@ -328,7 +328,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 
 meta::data('main', 'server.js');
-meta::data('name', 'figment');
+meta::data('name', 'introspection');
 meta::data('quiet', '1');
 meta::data('watching', '1');
 meta::function('cat', 'join "\\n", retrieve(@_);');
@@ -1921,6 +1921,25 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
+meta::note('introspection-concept', <<'__fc8b9b3ba4dbaad10e661e0f0c8d35ee');
+Figment introspection.
+One of the simplest ways to assign semantics to something is to determine its behavior. However, this micro-level semantic definition often fails to capture various kinds of linguistic
+subtlety that are useful in real-world scenarios. This gives rise to introspection, which involves looking for patterns in both the syntax and the rendered behavioral semantics. In the right
+runtime environment, such introspection can be used both for syntactic extension (i.e. macros), and for low-level stuff such as optimization.
+
+At its core a [compiler and] runtime is a function that maps syntax to behavior. Linguistically, it's an interpretation context for something. Most languages provide immutable interpretation
+contexts (especially languages with offline compilers), but some like Lisp provide ways to alter the syntactic interpretation of a quoted form. Figment differs in that its compiler is provided
+as an object that can be cloned and individually configured, and this compiler can be used to provide an interpretation context for other included scripts. So, for example:
+
+| c = compiler.new, c.compile 'file.fig'
+
+Now you can set c as the interpretation context for a block:
+
+| eight = c[3 + 5]
+
+This is potentially interesting because it gives you the ability to construct a custom compiler for a tree, or to specify additional semantics for the compiler that's running.
+__fc8b9b3ba4dbaad10e661e0f0c8d35ee
+
 meta::note('parse-specs', <<'__0252e9ccc128d793d2b6566a30203cb8');
 Parsing specs.
 Parsing works in a fairly straightforward way, but it does have some quirks. Among them are:
@@ -1931,6 +1950,19 @@ Parsing works in a fairly straightforward way, but it does have some quirks. Amo
   3. Paragraphs are assumed to be side-effectful and self-contained. However, paragraph breaks don't happen inside expressions; for example, opening a paren and then creating a paragraph break
      has no effect because the paren group is the active parse state. (This can be undesirable; it requires the host semantics to allow file-specific context.)
 __0252e9ccc128d793d2b6566a30203cb8
+
+meta::parent('../figment', <<'__95f4425ca326dd368dce5f0b78d54e2e');
+function::parse
+function::test-parse
+js::jsparse
+meta::type::fig
+parent::/home/spencertipping/bin/node-base
+parent::development
+sdoc::js::figment-parser
+sdoc::js::figment-parser-tests
+sdoc::js::parse-json
+vim_highlighter::figment
+__95f4425ca326dd368dce5f0b78d54e2e
 
 meta::parent('./sdoc', <<'__b058828a5b55f650e5457f6b0df06301');
 function::sdoc
