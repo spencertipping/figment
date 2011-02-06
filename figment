@@ -1954,7 +1954,7 @@ meta::configuration('dependencies', <<'__b4f5b6d975596a42bb35a714f2662b4f');
 caterwaul.all.js: http://spencertipping.com/caterwaul/caterwaul.all.js
 __b4f5b6d975596a42bb35a714f2662b4f
 
-meta::data('current-continuation', 'truncating value expressions');
+meta::data('current-continuation', 'unit tests');
 meta::data('default-action', 'shell');
 meta::data('libraries', <<'__cca38bdfe6664615b581ec6dff43cf46');
 # URLs of libraries to be downloaded into the lib/ directory.
