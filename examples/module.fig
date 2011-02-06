@@ -1,0 +1,8 @@
+Figment modules.
+Using the introspection model, modules can be written like this:
+
+_include(foo, bar, bif),
+_module my::module >>= (transform1, transform2, _..., transformN)
+
+Second paragraph.
+This is the second paragraph of comments.
