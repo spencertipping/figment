@@ -117,7 +117,7 @@ meta::functor::editable 'configuration', inherit => 0, extension => '.conf', def
 __d67e10a128e6b1d958c5b9d3bbe25aa4
 
 meta::meta('type::data', 'meta::functor::editable \'data\', extension => \'\', inherit => 0, default => \'cat\';');
-meta::meta('type::fig', 'meta::functor::editable \'fig\', extension => \'.fig\', inherit => 1;');
+meta::meta('type::fig', 'meta::functor::editable \'fig\', default => \'edit\', extension => \'.fig\', inherit => 1;');
 meta::meta('type::function', <<'__d93b3cc15693707dac518e3d6b1f5648');
 meta::configure 'function', extension => '.pl', inherit => 1;
 meta::define_form 'function', sub {
@@ -586,7 +586,6 @@ with_exported(@_, sub {
 });
 __50666d988e8596c897694fc9f0cdcce9
 
-meta::function('parse-test', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('perl', <<'__f2b57dd342923797e8e2287c3095803f');
 my $result = eval(join ' ', @_);
 $@ ? terminal::message('error', $@) : $result;
@@ -854,6 +853,7 @@ hook('bin/after-test');
 $failures;
 __ea30e1e2f7cb5bb44277a6bd47508dba
 
+meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
 meta::function('update', '&{\'update-from\'}(@_, grep s/^parent:://o, sort keys %data);');
 meta::function('update-from', <<'__d0de3a29902618c0457d2e76a1828d9b');
@@ -1940,9 +1940,9 @@ Normal unary and binary operators are translated normally:
   x + y * z     / Becomes (x + y) * z -- no precedence left-associative
 __c56d6ab6b3db795f8752ad0850a5d5ad
 
-meta::parent('../figment', <<'__563c5b25e92415cba94e4626daca0fc5');
+meta::parent('../figment', <<'__95f4425ca326dd368dce5f0b78d54e2e');
 function::parse
-function::parse-test
+function::test-parse
 js::jsparse
 meta::type::fig
 parent::/home/spencertipping/bin/node-base
@@ -1951,7 +1951,7 @@ sdoc::js::figment-parser
 sdoc::js::figment-parser-tests
 sdoc::js::parse-json
 vim_highlighter::figment
-__563c5b25e92415cba94e4626daca0fc5
+__95f4425ca326dd368dce5f0b78d54e2e
 
 meta::parent('./sdoc', <<'__b058828a5b55f650e5457f6b0df06301');
 function::sdoc
