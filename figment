@@ -3916,7 +3916,7 @@ return '' if template::failing_conditional($commands);
 join "\n", map retrieve($_), split /\s+/, $commands;
 __e0624844a65ae41e0217dd871fc0dbfb
 
-meta::vim_highlighter('figment', <<'__4e375c731a7a99914919f032b6608385');
+meta::vim_highlighter('figment', <<'__0c13a17195ebcad995dd879d2a549035');
 " Vim syntax file
 " Language:   Figment
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
@@ -3937,12 +3937,12 @@ syn sync fromstart
 setlocal iskeyword=39,45,47,48-57,a-z,95       " Digits, single quote, _, -, /, and lowercase letters
 
 " Operators.
-syn match figOperator /[-A-Z~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}'*/
+syn match figOperator /[-~`!@#$%^&*+=\\:;,.\/?<>]\{1,\}'*/
 
   hi link figOperator Operator
 
 " High-level comment syntax (re-embedding relevant parts of SDoc)
-syn region figBlockComment      start=/\(^$\n^\|\%^\)\s*[A-Z\|]/ end=/^$\|\%$/ contains=figSDocHeader,figSDocNumberedList keepend
+syn region figBlockComment      start=/\(^$\n^\|\%^\)\s*[A-Z|]/ end=/^$\|\%$/ contains=figSDocHeader,figSDocNumberedList keepend
 syn match  figSDocHeader        /\(^$\n^\|\%^\)\s*[A-Z].\{,60\}\.$/ contained
 syn region figSDocNumberedList  start=/^\s*|\s*\d\{1,2\}\.\s\{1,2\}[A-Za-z]/me=e-1 end=/^$\|\%$/ contains=sdNumberedItem transparent
 syn match  figSDocNumberedItem  /^\s*|\?\s*\d\{1,2\}\.\s\{1,2\}/ contained
@@ -4016,7 +4016,7 @@ syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
   hi link figFloat   Number
 
 let b:current_syntax = "figment"
-__4e375c731a7a99914919f032b6608385
+__0c13a17195ebcad995dd879d2a549035
 
 internal::main();
 
