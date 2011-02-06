@@ -3820,7 +3820,7 @@ __1258d5867978f2068c8efd130c2066f7
 
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__cc48775eb61962aaf3d21fecaf7976ae');
+meta::sdoc('js::figment-parser', <<'__60f54c3456e411a9f46d6081dcbbb2c3');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3869,11 +3869,12 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
                                                sequence(js(choice(range('a', 't'), range('v', 'z')), jr0(range('a', 'z'))), qdelim(unquoted,  unquoted)))),
                           fn[xs][{quoted: xs[1][1].value, delimiter: xs[1][1].delimiter, word: xs[1][0]}]),
 
-    value        = action(sequence(repeat0(lcomment), choice(bracketed(fn_[optional(expression)]), quoted, identifier, number, string, action(operator, fn[x][{quote: x}])), repeat0(lcomment)),
+    value        = action(sequence(repeat0(lcomment), choice(bracketed(fn_[optional(expression)]), quoted, identifier, number, string), repeat0(lcomment)),
                           fn[xs][{annotations: (xs[0] || []).concat(xs[2] || []), value: xs[1]}]),
 
     tjoin        = ks('join', value, repeat0(action(value, fn[xs][[null, xs]]))),
-    tbinary      = ks('binary', tjoin, r0s(operator, tjoin)),
+    prefix       = action(sequence(r0s(operator), tjoin), fn[xs][xs[0].length ? {value: xs[1], prefix: seq[~xs[0] *[_[0]]].slice()} : xs[1]]),
+    tbinary      = ks('binary', prefix, r0s(operator, prefix)),
     ljoin        = ks('join', tbinary, r0s(whitespace, tbinary)),
     lbinary      = ks('binary', ljoin, action(r0s(optional(whitespace), operator, whitespace, ljoin), fn[xs][seq[~xs *[[_[1], _[3]]]].slice()])),
 
@@ -3885,7 +3886,7 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     lparagraph   = tag('lparagraph', js(choice(range('A', 'Z'), '|'), jr0(negate(pbreak)))),
 
     paragraph    = choice(lparagraph, cparagraph)]})(require);
-__cc48775eb61962aaf3d21fecaf7976ae
+__60f54c3456e411a9f46d6081dcbbb2c3
 
 meta::sdoc('js::parse-json', <<'__49247e5ac7224cbc079d0c09bc82bff3');
 Figment parser runtime | Spencer Tipping
@@ -3915,7 +3916,7 @@ return '' if template::failing_conditional($commands);
 join "\n", map retrieve($_), split /\s+/, $commands;
 __e0624844a65ae41e0217dd871fc0dbfb
 
-meta::vim_highlighter('figment', <<'__0c13a17195ebcad995dd879d2a549035');
+meta::vim_highlighter('figment', <<'__4e375c731a7a99914919f032b6608385');
 " Vim syntax file
 " Language:   Figment
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
@@ -3936,12 +3937,12 @@ syn sync fromstart
 setlocal iskeyword=39,45,47,48-57,a-z,95       " Digits, single quote, _, -, /, and lowercase letters
 
 " Operators.
-syn match figOperator /[-~`!@#$%^&*+=\\:;,.\/?<>]\{1,\}'*/
+syn match figOperator /[-A-Z~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}'*/
 
   hi link figOperator Operator
 
 " High-level comment syntax (re-embedding relevant parts of SDoc)
-syn region figBlockComment      start=/\(^$\n^\|\%^\)\s*[A-Z|]/ end=/^$\|\%$/ contains=figSDocHeader,figSDocNumberedList keepend
+syn region figBlockComment      start=/\(^$\n^\|\%^\)\s*[A-Z\|]/ end=/^$\|\%$/ contains=figSDocHeader,figSDocNumberedList keepend
 syn match  figSDocHeader        /\(^$\n^\|\%^\)\s*[A-Z].\{,60\}\.$/ contained
 syn region figSDocNumberedList  start=/^\s*|\s*\d\{1,2\}\.\s\{1,2\}[A-Za-z]/me=e-1 end=/^$\|\%$/ contains=sdNumberedItem transparent
 syn match  figSDocNumberedItem  /^\s*|\?\s*\d\{1,2\}\.\s\{1,2\}/ contained
@@ -4015,7 +4016,7 @@ syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
   hi link figFloat   Number
 
 let b:current_syntax = "figment"
-__0c13a17195ebcad995dd879d2a549035
+__4e375c731a7a99914919f032b6608385
 
 internal::main();
 
