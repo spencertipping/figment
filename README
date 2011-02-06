@@ -15,9 +15,12 @@ are:
 4. Customizability - every construct can be reinterpreted
 5. Perl - Perl is awesome, so use (steal) features from it
 
-The Figment -> JSON parser is maintained as a self-modifying Perl file called
-figment. You can run it like this:
+The Figment -> JSON parser is maintained as a self-modifying Perl file [1]
+called figment. You can run it like this:
 
 $ ./figment parse examples/ops.fig
 
 It prints its output to stdout.
+
+[1] See github.com/spencertipping/writing-self-modifying-perl for details, and
+    github.com/spencertipping/perl-objects for some other scripts.
