@@ -3907,17 +3907,37 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     paragraph    = choice(lparagraph, cparagraph)]})(require);
 __9e729f483135a11823fe0582b42413cc
 
-meta::sdoc('js::figment-parser-tests', <<'__10cd0a2bfcbe425da3bfdd48af3e14d6');
+meta::sdoc('js::figment-parser-tests', <<'__ac30f6c4689bbb7f961f9f144f376f25');
 Unit tests for Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
 caterwaul.clone('std continuation seq')(function () {
-  test('3 + 4', [['+', 3, 4]]),
+  defsubst[_a > _b /fa][seq[ops *!op[l[i1 = ident(), i2 = ident(), i3 = ident()] in test(_a, [_b])]]];
+
+  console.log('#{ops.length} operations'),
+
+  '#{i1} #{op} #{i2}' > [op, i1, i2] /fa,
+  '#{i1}#{op} #{i2}'  > [op, i1, i2] /fa,
+  '#{i1} #{op}#{i2}'  > [' ', i1, [op, i2]] /fa,
+  '#{i1}#{op}#{i2}'   > [op, i1, i2] /fa,
+
+  '#{i1} #{op} #{i2}#{op}#{i3}' > [op, i1, [op, i2, i3]] /fa,
+  '#{i1}#{op}#{i2} #{op} #{i3}' > [op, [op, i1, i2], i3] /fa,
 
   where*[
+    ops = seq[~'+ - * / @ # $ % ^ & ` : \\ | = ~'.split(/\s+/)],
+    ops = seq[ops + (ops -~op[ops *[op] ^ (ops + ['!', '?'])]) *[_[0] + _[1]]],
+
+    c(s) = s.charAt(Math.random() * s.length >>> 0),
+
+    ident() = l*[length = Math.random() * 200, suffix_length = Math.random() * 6] in
+              c('abcdefghijklmnoprstuvwxyz') +
+              seq[(0 >>>[_ + 1] <<[_ <= length]) *[(Math.random() < 0.2 ? c('-/') : '') + c('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_')]].join('') +
+              seq[(0 >>>[_ + 1] <<[_ <= suffix_length]) *[c('\'?!')]].join(''),
+
     eq(x, y)   = JSON.stringify(x) === JSON.stringify(y),
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
-__10cd0a2bfcbe425da3bfdd48af3e14d6
+__ac30f6c4689bbb7f961f9f144f376f25
 
 meta::sdoc('js::parse-json', <<'__49247e5ac7224cbc079d0c09bc82bff3');
 Figment parser runtime | Spencer Tipping
