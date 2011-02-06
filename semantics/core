@@ -1988,7 +1988,7 @@ meta::data('main', 'server.js');
 meta::data('name', 'core');
 meta::data('quiet', '1');
 meta::data('watching', '1');
-meta::fig('syntax', <<'__30e928b476138232b2dbc18b700de72c');
+meta::fig('syntax', <<'__144bf08aeefb14ef9b340c25895d7ec3');
 Figment syntax transformation library | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1998,10 +1998,15 @@ unknown. The model is that Figment trees are layered; at the toplevel they consi
 tight binary associations, then prefix operators, and finally tight joins. This library serves two purposes. One is to assign a strictly hierarchical structure to those layers (i.e. by
 imposing proper operator precedence and associativity), and the other is to support a set of operators to quote and match against trees.
 
-
-__30e928b476138232b2dbc18b700de72c
+form :x         / Quotation: define the role of : as a data constructor
+__144bf08aeefb14ef9b340c25895d7ec3
 
 meta::function('cat', 'join "\\n", retrieve(@_);');
+meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
+# Stashes a quick one-line continuation. (Used to remind me what I was doing.)
+@_ ? associate('data::current-continuation', join(' ', @_)) : retrieve('data::current-continuation');
+__5c64e1adc128113e1b409e0fbcbe29a2
+
 meta::function('child', <<'__3eeb4b4fd37a502b53f0008e7835b5de');
 my ($child_name) = @_;
 
@@ -2246,7 +2251,12 @@ create("note::$_[0]");
 __bcbfeac6dd2112f47296265444570a6e
 
 meta::function('parents', 'join "\\n", grep s/^parent:://o, sort keys %data;');
-meta::function('parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::parse-json/], @_);');
+meta::function('parse', <<'__50666d988e8596c897694fc9f0cdcce9');
+with_exported(@_, sub {
+  node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::parse-json/], $_[0]);
+});
+__50666d988e8596c897694fc9f0cdcce9
+
 meta::function('perl', <<'__f2b57dd342923797e8e2287c3095803f');
 my $result = eval(join ' ', @_);
 $@ ? terminal::message('error', $@) : $result;
@@ -3618,10 +3628,11 @@ parent::/home/spencertipping/bin/repository
 parent::/home/spencertipping/conjectures/perl-objects/sdoc
 __1278e29bc8f531363f6290f3fafa9cbc
 
-meta::parent('/home/spencertipping/bin/object', <<'__4d0e33987ce7bf61960b406ece50cef7');
+meta::parent('/home/spencertipping/bin/object', <<'__b1308b5b9c4a7001a50498e0844fa748');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
+function::cc
 function::child
 function::clone
 function::cp
@@ -3704,7 +3715,8 @@ meta::type::retriever
 meta::type::state
 meta::type::watch
 retriever::file
-__4d0e33987ce7bf61960b406ece50cef7
+retriever::id
+__b1308b5b9c4a7001a50498e0844fa748
 
 meta::parent('/home/spencertipping/bin/repository', <<'__f88c2b0e5725507b3fdb5719fd65e6d3');
 function::dupdate
@@ -3738,10 +3750,11 @@ meta::type::note
 parent::object
 __320d51928ec8e2e370d67d30abe059b5
 
-meta::parent('object', <<'__4d0e33987ce7bf61960b406ece50cef7');
+meta::parent('object', <<'__b1308b5b9c4a7001a50498e0844fa748');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
+function::cc
 function::child
 function::clone
 function::cp
@@ -3824,7 +3837,8 @@ meta::type::retriever
 meta::type::state
 meta::type::watch
 retriever::file
-__4d0e33987ce7bf61960b406ece50cef7
+retriever::id
+__b1308b5b9c4a7001a50498e0844fa748
 
 meta::parent('preprocessor', <<'__9c447d98a6cfad0ea5444db7eb4b75de');
 function::preprocess
@@ -3843,8 +3857,9 @@ parent::object
 __1258d5867978f2068c8efd130c2066f7
 
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
+meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__60f54c3456e411a9f46d6081dcbbb2c3');
+meta::sdoc('js::figment-parser', <<'__23b083a695b4d61e7e1aab6d524e974a');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3866,21 +3881,23 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     r1s()     = repeat1(sequence.apply(this, arguments)),
     tag(x, p) = action(p, fn[xs][{} /se[_[x] = xs]]),
 
-    oneof(cs) = choice.apply(this, cs.split('')), whitespace = repeat1(oneof('\t\n\r ')), eol = sequence(repeat0(' \t'), oneof('\n\r')),
+    oneof(cs) = choice.apply(this, cs.split('')), whitespace = jr1(oneof('\t\n\r ')), eol = js(jr0(' \t'), oneof('\n\r')),
 
-    identifier   = l*[first = oneof('abcdefghijklmnopqrstuvwxyz_'), alt = oneof('-/'), middle = choice(first, oneof('0123456789')), rest = js(optional(alt), middle)] in
+    ident(first) = l*[alt = oneof('-/'), middle = choice(first, range('a', 'z'), range('A', 'Z'), '_', oneof('0123456789')), rest = js(optional(alt), middle)] in
                    js(first, jr0(rest), jr0(oneof('?!\''))),
+    identifier   = ident(choice(range('a', 'z'))),
+    infix_ident  = ident('_'),
 
     lcomment     = action(sequence(optional(whitespace), oneof('-/'), optional(whitespace), js(range('A', 'Z'), jr0(negate(eol))), choice(eol, end_p)), fn[xs][xs[3]]),
-    operator     = action(sequence(repeat0(lcomment), jr1(oneof('`~!@#$%^&*-+=\\|;:<>./?')), jr0(oneof('\''))), fn[xs][{op: xs[1], annotations: xs[0] || []}]),
+    operator     = action(sequence(repeat0(lcomment), choice(js(jr1(oneof('`~!@#$%^&*-+=\\|:<>./?')), jr0(oneof('\''))), infix_ident)), fn[xs][xs[1]]),
 
-    number       = l*[digit = oneof('0123456789')] in action(js(jr1(digit), optional(js('.', jr0(digit), optional(js(oneof('eE'), optional(oneof('+-')), jr1(digit)))))), Number),
+    number       = l*[digit = oneof('0123456789')] in action(js(jr1(digit), optional(js('.', jr1(digit), optional(js(oneof('eE'), optional(oneof('+-')), jr1(digit)))))), Number),
 
-    bracketed(x)() = choice(action(sequence('(', x(')'), ')'), fn[xs][{parens:   true, value: xs[1], delimiter: xs[0]}]),
-                            action(sequence('[', x(']'), ']'), fn[xs][{brackets: true, value: xs[1], delimiter: xs[0]}]),
-                            action(sequence('{', x('}'), '}'), fn[xs][{braces:   true, value: xs[1], delimiter: xs[0]}])).apply(this, arguments),
+    bracketed(x)() = choice(action(sequence('(', x(')'), ')'), fn[xs][{parens:   true, v: xs[1], delimiter: xs[0]}]),
+                            action(sequence('[', x(']'), ']'), fn[xs][{brackets: true, v: xs[1], delimiter: xs[0]}]),
+                            action(sequence('{', x('}'), '}'), fn[xs][{braces:   true, v: xs[1], delimiter: xs[0]}])).apply(this, arguments),
 
-    qdelim(x, b) = l*[same(c) = action(sequence(c, x(c), c), fn[xs][{value: xs[1], delimiter: xs[0]}])] in choice(bracketed(b), same('|'), same('+'), same('/'), same('\''), same('"')),
+    qdelim(x, b) = l*[same(c) = action(sequence(c, x(c), c), fn[xs][{v: xs[1], delimiter: xs[0]}])] in choice(bracketed(b), same('|'), same('+'), same('/'), same('\''), same('"')),
 
     unquoted(d)  = action(repeat0(choice(action(sequence('Q', qdelim(fn_[expression], fn_[expression])), fn[xs][{unquote: xs[1].value, delimiter: xs[1].delimiter}]),
                                          optional(choice(js('\\', negate(nothing_p)), jr1(negate(choice(d, 'Q'))), negate(d))))), fn[xs][seq[~xs %![_ === false]].slice()]),
@@ -3893,24 +3910,25 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
                                                sequence(js(choice(range('a', 't'), range('v', 'z')), jr0(range('a', 'z'))), qdelim(unquoted,  unquoted)))),
                           fn[xs][{quoted: xs[1][1].value, delimiter: xs[1][1].delimiter, word: xs[1][0]}]),
 
-    value        = action(sequence(repeat0(lcomment), choice(bracketed(fn_[optional(expression)]), quoted, identifier, number, string), repeat0(lcomment)),
-                          fn[xs][{annotations: (xs[0] || []).concat(xs[2] || []), value: xs[1]}]),
+    value        = action(sequence(repeat0(lcomment), choice(bracketed(fn_[optional(expression)]), quoted, identifier, number, string), repeat0(lcomment)), fn[xs][xs[1]]),
 
-    tjoin        = ks('join', value, repeat0(action(value, fn[xs][[null, xs]]))),
-    prefix       = action(sequence(r0s(operator), tjoin), fn[xs][xs[0].length ? {value: xs[1], prefix: seq[~xs[0] *[_[0]]].slice()} : xs[1]]),
-    tbinary      = ks('binary', prefix, r0s(operator, prefix)),
-    ljoin        = ks('join', tbinary, r0s(whitespace, tbinary)),
-    lbinary      = ks('binary', ljoin, action(r0s(optional(whitespace), operator, whitespace, ljoin), fn[xs][seq[~xs *[[_[1], _[3]]]].slice()])),
+    binary(base, sep) = l*[f() = f.apply(this, arguments)][f = action(sequence(base, optional(sep ? sequence(sep, f) : f)),
+                        fn[xs][xs[1] ? {binary: sep ? xs[1][0] : null, lhs: xs[0], rhs: sep ? xs[1][1] : xs[1]} : xs[0]])],
 
-    expression   = ks('comma', lbinary, repeat0(action(sequence(optional(whitespace), ',', optional(whitespace), lbinary), fn[xs][[',', xs[3]]]))),
+    tjoin        = binary(value),
+    prefix       = action(sequence(optional(operator), tjoin), fn[xs][xs[0] ? {rhs: xs[1], unary: xs[0]} : xs[1]]),
+    tbinary      = binary(prefix, operator),
+    ljoin        = binary(tbinary, whitespace),
+    lbinary      = binary(ljoin, action(sequence(optional(whitespace), operator, whitespace), fn[xs][xs[1]])),
+    expression   = binary(lbinary, action(sequence(optional(whitespace), oneof(',;'), optional(whitespace)), fn[xs][xs[1]])),
 
     pbreak       = sequence(choice(sequence(eol, eol), sequence(repeat0(whitespace), end_p)), repeat0(eol)),
 
-    cparagraph   = expression,
+    cparagraph   = action(sequence(optional(whitespace), expression), fn[xs][xs[1]]),
     lparagraph   = tag('lparagraph', js(choice(range('A', 'Z'), '|'), jr0(negate(pbreak)))),
 
     paragraph    = choice(lparagraph, cparagraph)]})(require);
-__60f54c3456e411a9f46d6081dcbbb2c3
+__23b083a695b4d61e7e1aab6d524e974a
 
 meta::sdoc('js::parse-json', <<'__49247e5ac7224cbc079d0c09bc82bff3');
 Figment parser runtime | Spencer Tipping
@@ -3940,7 +3958,7 @@ return '' if template::failing_conditional($commands);
 join "\n", map retrieve($_), split /\s+/, $commands;
 __e0624844a65ae41e0217dd871fc0dbfb
 
-meta::vim_highlighter('figment', <<'__96fa45aa4fca12dedc9e4495f9e495df');
+meta::vim_highlighter('figment', <<'__0c13a17195ebcad995dd879d2a549035');
 " Vim syntax file
 " Language:   Figment
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
@@ -3961,12 +3979,12 @@ syn sync fromstart
 setlocal iskeyword=39,45,47,48-57,a-z,95       " Digits, single quote, _, -, /, and lowercase letters
 
 " Operators.
-syn match figOperator /[-~`!@#$%^&*+=|\\:;,.\/?<>]\{1,\}'*/
+syn match figOperator /[-~`!@#$%^&*+=\\:;,.\/?<>]\{1,\}'*/
 
   hi link figOperator Operator
 
 " High-level comment syntax (re-embedding relevant parts of SDoc)
-syn region figBlockComment      start=/\(^$\n^\|\%^\)\s*[A-Z\|]/ end=/^$\|\%$/ contains=figSDocHeader,figSDocNumberedList keepend
+syn region figBlockComment      start=/\(^$\n^\|\%^\)\s*[A-Z|]/ end=/^$\|\%$/ contains=figSDocHeader,figSDocNumberedList keepend
 syn match  figSDocHeader        /\(^$\n^\|\%^\)\s*[A-Z].\{,60\}\.$/ contained
 syn region figSDocNumberedList  start=/^\s*|\s*\d\{1,2\}\.\s\{1,2\}[A-Za-z]/me=e-1 end=/^$\|\%$/ contains=sdNumberedItem transparent
 syn match  figSDocNumberedItem  /^\s*|\?\s*\d\{1,2\}\.\s\{1,2\}/ contained
@@ -4040,7 +4058,7 @@ syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
   hi link figFloat   Number
 
 let b:current_syntax = "figment"
-__96fa45aa4fca12dedc9e4495f9e495df
+__0c13a17195ebcad995dd879d2a549035
 
 internal::main();
 
