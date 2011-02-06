@@ -296,7 +296,7 @@ meta::configuration('dependencies', <<'__8548df37a8c03740da742d1f650b6dd7');
 caterwaul.all.js: http://spencertipping.com/caterwaul/caterwaul.all.min.js
 __8548df37a8c03740da742d1f650b6dd7
 
-meta::data('current-continuation', 'unit tests');
+meta::data('current-continuation', 'scp music to joyce');
 meta::data('default-action', 'shell');
 meta::data('libraries', <<'__cca38bdfe6664615b581ec6dff43cf46');
 # URLs of libraries to be downloaded into the lib/ directory.
@@ -2179,7 +2179,7 @@ __1258d5867978f2068c8efd130c2066f7
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__9e729f483135a11823fe0582b42413cc');
+meta::sdoc('js::figment-parser', <<'__a715e30fa6ad38c283b4f5b7f85757c7');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2203,13 +2203,12 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
 
     oneof(cs) = choice.apply(this, cs.split('')), whitespace = jr1(oneof('\t\n\r ')), eol = js(jr0(' \t'), oneof('\n\r')),
 
-    ident(first) = l*[alt = oneof('-/'), middle = choice(first, range('a', 'z'), range('A', 'Z'), '_', oneof('0123456789')), rest = js(optional(alt), middle)] in
-                   js(first, jr0(rest), jr0(oneof('?!\''))),
-    identifier   = ident(choice(range('a', 'z'))),
-    infix_ident  = ident('_'),
+    ident(r)     = l*[alt = oneof('-/'), middle = choice(range('a', 'z'), range('A', 'Z'), '_', oneof('0123456789')), rest = js(optional(alt), middle)] in js(r(rest), jr0(oneof('?!\''))),
+    identifier   = js(range('a', 'z'), ident(jr0)),
 
     lcomment     = action(sequence(optional(whitespace), oneof('-/'), optional(whitespace), js(range('A', 'Z'), jr0(negate(eol))), choice(eol, end_p)), fn[xs][xs[3]]),
-    operator     = action(sequence(repeat0(lcomment), choice(js(jr1(oneof('`~!@#$%^&*-+=\\|:<>./?')), jr0(oneof('\''))), infix_ident)), fn[xs][xs[1]]),
+    operator     = action(sequence(repeat0(lcomment), choice(js(jr1(oneof('`~!@#$%^&*-+=\\|:<>./?')), jr0(oneof('\''))), js('_', ident(jr1)))), fn[xs][xs[1]]),
+    qoperator    = js('_', operator),
 
     number       = l*[digit = oneof('0123456789')] in action(js(jr1(digit), optional(js('.', jr1(digit), optional(js(oneof('eE'), optional(oneof('+-')), jr1(digit)))))), Number),
 
@@ -2229,11 +2228,10 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
                                                sequence(js(choice(range('a', 't'), range('v', 'z')), jr0(range('a', 'z'))), qdelim(unquoted,  unquoted)))),
                           fn[xs][['q', xs[1][0], xs[1][1][0], xs[1][1][1]]]),
 
-    value        = action(sequence(repeat0(lcomment), choice(bracketed(fn_[optional(expression)]), quoted, identifier, number, string), repeat0(lcomment)), fn[xs][xs[1]]),
+    value        = action(sequence(repeat0(lcomment), choice(bracketed(fn_[optional(expression)]), quoted, qoperator, identifier, number, string), repeat0(lcomment)), fn[xs][xs[1]]),
 
     binary(base, sep) = l*[f() = f.apply(this, arguments)][f = action(sequence(base, optional(sep ? sequence(sep, f) : f)),
-                        fn[xs][xs[1] ? [sep ? xs[1][0] : null, xs[0], sep ? xs[1][1] : xs[1]] : xs[0]])],
-
+                                                                      fn[xs][xs[1] ? [sep ? xs[1][0] : '', xs[0], sep ? xs[1][1] : xs[1]] : xs[0]])],
     tjoin        = binary(value),
     prefix       = action(sequence(optional(operator), tjoin), fn[xs][xs[0] ? xs : xs[1]]),
     tbinary      = binary(prefix, operator),
@@ -2247,9 +2245,9 @@ parse_figment = caterwaul.clone('std continuation seq')(function (require) {
     lparagraph   = tag('lparagraph', js(choice(range('A', 'Z'), '|'), jr0(negate(pbreak)))),
 
     paragraph    = choice(lparagraph, cparagraph)]})(require);
-__9e729f483135a11823fe0582b42413cc
+__a715e30fa6ad38c283b4f5b7f85757c7
 
-meta::sdoc('js::figment-parser-tests', <<'__ac30f6c4689bbb7f961f9f144f376f25');
+meta::sdoc('js::figment-parser-tests', <<'__903bd65ffc6b09a97127b6474706606c');
 Unit tests for Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2266,20 +2264,25 @@ caterwaul.clone('std continuation seq')(function () {
   '#{i1} #{op} #{i2}#{op}#{i3}' > [op, i1, [op, i2, i3]] /fa,
   '#{i1}#{op}#{i2} #{op} #{i3}' > [op, [op, i1, i2], i3] /fa,
 
+  '_+ #{op} _$'                     > [op, '_+', '_$'] /fa,
+  '_-%! #{op} _%!'                  > [op, '_-%!', '_%!'] /fa,
+  '$$_@<>: #{op} _<<(#{i1})'        > [op, ['$$', '_@<>:'], ['', '_<<', ['(', i1]]] /fa,
+  '+#{op}_@<>: #{op} _#{op}(#{i1})' > [op, ['+#{op}', '_@<>:'], ['', '_#{op}', ['(', i1]]] /fa,
+
   where*[
     ops = seq[~'+ - * / @ # $ % ^ & ` : \\ | = ~'.split(/\s+/)],
     ops = seq[ops + (ops -~op[ops *[op] ^ (ops + ['!', '?'])]) *[_[0] + _[1]]],
 
     c(s) = s.charAt(Math.random() * s.length >>> 0),
 
-    ident() = l*[length = Math.random() * 200, suffix_length = Math.random() * 6] in
+    ident() = l*[length = Math.random() * 20, suffix_length = Math.random() * 6] in
               c('abcdefghijklmnoprstuvwxyz') +
               seq[(0 >>>[_ + 1] <<[_ <= length]) *[(Math.random() < 0.2 ? c('-/') : '') + c('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_')]].join('') +
               seq[(0 >>>[_ + 1] <<[_ <= suffix_length]) *[c('\'?!')]].join(''),
 
     eq(x, y)   = JSON.stringify(x) === JSON.stringify(y),
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
-__ac30f6c4689bbb7f961f9f144f376f25
+__903bd65ffc6b09a97127b6474706606c
 
 meta::sdoc('js::parse-json', <<'__49247e5ac7224cbc079d0c09bc82bff3');
 Figment parser runtime | Spencer Tipping
