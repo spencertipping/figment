@@ -409,22 +409,22 @@ qx|cd lib && wget -nv $_| for split /\n+/, libraries();
 hook('bin/after-lib-download');
 hook('bin/after-lib');
 __1fdcdc3310118791c100b533f6c11070
-meta::function('load-state', <<'__43b91921c93f3ac6eb86634237bdc19b');
+meta::function('load-state', <<'__0bddb2edf7d13e60bf47e7bce8c8c011');
 my ($state_name) = @_;
 my $state = retrieve("state::$state_name");
 
-terminal::state('Saving current state into _...');
+terminal::state('saving current state into _...');
 &{'save-state'}('_');
 
 delete $data{$_} for grep ! /^state::/, keys %data;
 %externalized_functions = ();
 
-terminal::state("Restoring state $state_name...");
+terminal::state("restoring state $state_name...");
 meta::eval_in($state, "state::$state_name");
 terminal::error($@) if $@;
 reload();
 verify();
-__43b91921c93f3ac6eb86634237bdc19b
+__0bddb2edf7d13e60bf47e7bce8c8c011
 meta::function('loc', <<'__dfe41cc08b7be0baa9a396df86e9b8e2');
 # Counts SLOC, whitespace, and total LOC in the codebase.
 my @lines      = map split(/\n/, file::read($_)), dependencies(), main();
@@ -466,18 +466,18 @@ die "'$from' does not exist" unless exists $data{$from};
 associate($to, retrieve($from));
 rm($from);
 __52e95180e3c7019116bd798e0da0fdda
-meta::function('node', <<'__bd81719917ff03ed699476a4375af21a');
+meta::function('node', <<'__4ca639731eed217d5396d1f36c9d5aec');
 # Runs node on a collection of source files and arguments. The format is:
 # node([@source_strings], @process_args);
 my ($sources, @args) = @_;
 
 with_exported(@$sources, sub {
-  terminal::message('debug', "starting application using $_[0]");
+  terminal::debug("starting application using $_[0]");
   hook('bin/before-node', $_[0], @args);
   sh('node', $_[0], @args);
   hook('bin/after-node', $_[0], @args);
 });
-__bd81719917ff03ed699476a4375af21a
+__4ca639731eed217d5396d1f36c9d5aec
 meta::function('note', <<'__bcbfeac6dd2112f47296265444570a6e');
 # Creates a note with a given name, useful for jotting things down.
 create("note::$_[0]");
@@ -571,7 +571,7 @@ hook('bin/before-run-forever');
 &$f(@args) while sleep 0.1 && ! -f 'stop';
 hook('bin/after-run-forever');
 __76175932a2d2692fc802856c28d0848d
-meta::function('save', 'dangerous("Saving $0...", sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
+meta::function('save', 'dangerous("saving $0", sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
 my ($state_name) = @_;
@@ -639,7 +639,7 @@ my $delimiter = '__' . fast_hash($contents);
 return "$meta_function('$invocation', <<'$delimiter');\n$contents\n$delimiter";
 __ef0f63556d22816ed102d3bbe2172b28
 meta::function('sh', 'system(@_);');
-meta::function('shell', <<'__d0d9b8355e5eb54b1da29b7b5f5c79dc');
+meta::function('shell', <<'__c3952c1482cd39dfc045ed9efecd6214');
 use Term::ReadLine;
 
 my $term = new Term::ReadLine "$0 shell";
@@ -660,11 +660,11 @@ while ($attribs->{completion_word} = [sort keys %data, sort keys %externalized_f
   my @args = grep length, split /\s+|("[^"\\]*(?:\\.)?")/o;
   my $function_name = shift(@args) or next;
 
-  terminal::warning("Command not found: '$function_name' (use 'ls' to see available commands)"), next unless $externalized_functions{$function_name};
+  terminal::warning("$function_name invalid (use 'ls' to see available commands)"), next unless $externalized_functions{$function_name};
 
   s/^"(.*)"$/\1/o, s/\\\\"/"/go for @args;
   print dangerous('', sub {&$function_name(@args)}), "\n"}
-__d0d9b8355e5eb54b1da29b7b5f5c79dc
+__c3952c1482cd39dfc045ed9efecd6214
 meta::function('size', 'length(serialize());');
 meta::function('snapshot', <<'__c5d8a624c3eecc183f39b33c9b72f0db');
 my ($name) = @_;
@@ -678,7 +678,7 @@ my $hash = fast_hash(fast_hash(scalar @keys) . join '|', @keys);
 $hash = fast_hash("$data{$_}|$hash") for @keys;
 $hash;
 __119111f84c3e32a5536838ac84bc6f10
-meta::function('test', <<'__ea30e1e2f7cb5bb44277a6bd47508dba');
+meta::function('test', <<'__833c801b45242c312fa30253bd988ef2');
 # Runs your program on each unit test and keeps track of the return codes.
 # If arguments are specified, tests starting with those patterns are run.
 generate();
@@ -691,7 +691,7 @@ my @tests = @_ ? map <test/$_*.js>, @_ : <test/*.js>;
 
 for (@tests) {
   hook('bin/before-test-case', $_);
-  terminal::message('test', "starting test $_");
+  terminal::error('test', "starting test $_");
   my $status = node(dependencies(), $_);
   push @log, "fail $_" and hook('bin/test-failure', $_) if $status != 0;
   push @log, "pass $_" and hook('bin/test-success', $_) if $status == 0;
@@ -700,15 +700,15 @@ for (@tests) {
 }
 
 file::write('.test-log', join "\n", @log);
-terminal::message('error', "$failures test(s) failed") if $failures;
+terminal::error("$failures test(s) failed") if $failures;
 hook('bin/after-test');
 $failures;
-__ea30e1e2f7cb5bb44277a6bd47508dba
+__833c801b45242c312fa30253bd988ef2
 meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('touch', 'associate($_, \'\') for @_;');
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
 meta::function('update', '&{\'update-from\'}(@_, grep s/^parent:://o, sort keys %data);');
-meta::function('update-from', <<'__4eb47fbb62a6a740578b9a7acff53798');
+meta::function('update-from', <<'__4bb87dcea3d13203b15070a4a44389f8');
 # Upgrade all attributes that aren't customized. Customization is defined when the data type is created,
 # and we determine it here by checking for $transient{inherit}{$type}.
 
@@ -724,15 +724,15 @@ my $force      =    $$options{'-f'} || $$options{'--force'};
 &{'save-state'}('before-update') if $save_state;
 
 for my $target (@targets) {
-  dangerous('', sub {
+  dangerous("updating from $target", sub {
     my $attributes = join '', qx($target ls -aiu);
-    die "Skipping unreachable $target" unless $attributes;
+    die "skipping unreachable $target" unless $attributes;
 
     rm(split /\n/, retrieve("parent::$target")) if $data{"parent::$target"};
     associate("parent::$target", $attributes) unless $no_parents;
 
-    dangerous("Updating meta attributes from $target...",     sub {eval qx($target serialize -ipmu)});
-    dangerous("Updating non-meta attributes from $target...", sub {eval qx($target serialize -ipMu)});
+    dangerous('', sub {eval qx($target serialize -ipmu)});
+    dangerous('', sub {eval qx($target serialize -ipMu)});
     reload()})}
 
 if (verify()) {terminal::info("Successfully updated from $_[0]. Run 'load-state before-update' to undo this change.") if $save_state}
@@ -741,7 +741,7 @@ elsif ($force) {terminal::warning('Failed to verify: at this point your object w
 else {terminal::error('Verification failed after the upgrade was complete.');
       terminal::info("$0 has been reverted to its pre-upgrade state.", "If you want to upgrade and keep the failure state, then run 'update-from $target --force'.") if $save_state;
       return &{'load-state'}('before-update') if $save_state}
-__4eb47fbb62a6a740578b9a7acff53798
+__4bb87dcea3d13203b15070a4a44389f8
 meta::function('usage', '"Usage: $0 action [arguments]\\nUnique actions (run \'$0 ls\' to see all actions):" . ls(\'-u\');');
 meta::function('verify', <<'__123f83b5cb5c2400ae0b5c8af1c7bf20');
 file::write(my $other = $transient{temporary_filename} = temporary_name(), my $serialized_data = serialize());
@@ -814,10 +814,10 @@ my $result = eval {&$computation()};
 terminal::warning(translate_backtrace($@)), return undef if $@;
 $result;
 __167c759b4f9e54a667222dd3d405200d
-meta::internal_function('debug_trace', <<'__f887289259890731458a66398b628cdc');
-quiet() or terminal::message('debug', join ', ', @_);
+meta::internal_function('debug_trace', <<'__77644ab45a770a6e172680f659911507');
+terminal::debug(join ', ', @_);
 wantarray ? @_ : $_[0];
-__f887289259890731458a66398b628cdc
+__77644ab45a770a6e172680f659911507
 meta::internal_function('dep', <<'__bad9b934374b176318ed2295b63130bc');
 # A variadic function to prepend cached_dependency:: onto things.
 # Used like this: dep(qw/caterwaul.all.js montenegro.server.js/)
@@ -900,7 +900,7 @@ my $return_value  = eval {&$side_effect()};
 die $@ if $@;
 $return_value;
 __33ee2e1595d3877bd1d9accaa72305c8
-meta::internal_function('internal::main', <<'__1a920241209715887fe3003d819586fe');
+meta::internal_function('internal::main', <<'__b7379923a1c7d2481bad4247b8a71974');
 disable();
 
 $SIG{'INT'} = sub {snapshot(); exit 1};
@@ -909,7 +909,7 @@ $transient{initial}      = state();
 chomp(my $default_action = retrieve('data::default-action'));
 
 my $function_name = shift(@ARGV) || $default_action || 'usage';
-terminal::message('warning', "Unknown action: '$function_name'") and $function_name = 'usage' unless $externalized_functions{$function_name};
+terminal::warning("unknown action: '$function_name'") and $function_name = 'usage' unless $externalized_functions{$function_name};
 
 chomp(my $result = &$function_name(@ARGV));
 print "$result\n" if $result;
@@ -919,7 +919,7 @@ save() unless state() eq $transient{initial};
 END {
   enable();
 }
-__1a920241209715887fe3003d819586fe
+__b7379923a1c7d2481bad4247b8a71974
 meta::internal_function('invoke_editor_on', <<'__32c8b1e3c90bd40d504703e22b26e1f5');
 my ($data, %options) = @_;
 my $editor   = $options{editor} || $ENV{VISUAL} || $ENV{EDITOR} || die 'Either the $VISUAL or $EDITOR environment variable should be set to a valid editor';
@@ -1673,11 +1673,10 @@ not = exports.not = function(p) {
     }
 }
 __146ae7cd35ae2ba8f17428820c6fa755
-meta::library('terminal', <<'__b318afc9bd9fb3ac805ce5e4b6c9dae4');
+meta::library('terminal', <<'__c3e2765e602bc96fa5d2ce04a05547eb');
 # Functions for nice-looking terminal output.
 package terminal;
 
-my $longest = 0;
 my $process = $0;
 
 $process =~ s/^.*\///;
@@ -1685,15 +1684,11 @@ $process =~ s/^.*\///;
 sub message {print STDERR "[$_[0]] $_[1]\n"}
 sub color {
   my ($name, $color) = @_;
-  $longest = length $name if length $name > $longest;
-
-  *{"terminal::$name"} = sub {
-    my $padding = ' ' x ($longest - length $name);
-    print STDERR "\033[1;30m$process\033[0;0m$padding\[\033[1;${color}m$name\033[0;0m] $_\n" for @_}}
+  *{"terminal::$name"} = sub {print STDERR "\033[1;30m$process(\033[1;${color}m$name\033[1;30m)\033[0;0m $_\n" for @_}}
 
 my %preloaded = (info => 32, progress => 32, state => 34, debug => 34, warning => 33, error => 31);
 color $_, $preloaded{$_} for keys %preloaded;
-__b318afc9bd9fb3ac805ce5e4b6c9dae4
+__c3e2765e602bc96fa5d2ce04a05547eb
 meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
@@ -2153,17 +2148,17 @@ caterwaul.clone('std continuation seq')(function (require) {
   seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')] *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_) + '\n')]]})(require);
 __d3d72ad290f81c11e38f4a93baf12f49
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
-meta::template('eval', <<'__7be1d470a07a06c58e971bc7fc24c048');
+meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
-terminal::message('warning', "Error during template evaluation: $@") if $@;
+terminal::warning("Error during template evaluation: $@") if $@;
 $result;
-__7be1d470a07a06c58e971bc7fc24c048
-meta::template('failing_conditional', <<'__b49f2ffe1cfefb36b1eabd7abd7b3bb6');
+__eb0b1058649eb2d833f348540516b358
+meta::template('failing_conditional', <<'__5c593329b434a7044f68cec4b77e8ed9');
 my ($commands)    = @_;
 my $should_return = $commands =~ / if (.*)$/ && ! eval $1;
-terminal::message('warning', "eval of template condition failed: $@") if $@;
+terminal::warning("eval of template condition failed: $@") if $@;
 $should_return;
-__b49f2ffe1cfefb36b1eabd7abd7b3bb6
+__5c593329b434a7044f68cec4b77e8ed9
 meta::template('include', <<'__e0624844a65ae41e0217dd871fc0dbfb');
 my ($commands) = @_;
 return '' if template::failing_conditional($commands);
