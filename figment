@@ -483,11 +483,11 @@ meta::function('note', <<'__bcbfeac6dd2112f47296265444570a6e');
 create("note::$_[0]");
 __bcbfeac6dd2112f47296265444570a6e
 meta::function('parents', 'join "\\n", grep s/^parent:://o, sort keys %data;');
-meta::function('parse', <<'__50666d988e8596c897694fc9f0cdcce9');
+meta::function('parse', <<'__badaf7185f217947bd8b553c313561a9');
 with_exported(@_, sub {
-  node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::parse-json/], $_[0]);
+  node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::with-files js::parse-json/], $_[0]);
 });
-__50666d988e8596c897694fc9f0cdcce9
+__badaf7185f217947bd8b553c313561a9
 meta::function('perl', <<'__986a274c013b77fe08d29726ce3799fe');
 my $result = eval(join ' ', @_);
 $@ ? terminal::error($@) : $result;
@@ -1953,7 +1953,7 @@ __1258d5867978f2068c8efd130c2066f7
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__b321e31480bf72adc3909b77db70c2d8');
+meta::sdoc('js::figment-parser', <<'__4ef4182b60e7edfc15ec45dc3492ae7b');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2006,10 +2006,10 @@ parse_figment = caterwaul.clone('std continuation seq')(function () {
     pbreak       = choice(sequence(eol, repeat1(eol)), sequence(ws0, end_p)),
 
     cparagraph   = s1(ws0, expression),
-    lparagraph   = action(js(ws0, choice(range('A', 'Z'), '|'), jr0(negate(pbreak))), fn[x][['lparagraph', x]]),
+    lparagraph   = action(js(ws0, choice(range('A', 'Z'), '|'), jr0(negate(pbreak))), fn[x][['literate', x]]),
 
     paragraph    = s0(choice(lparagraph, cparagraph), pbreak)]})();
-__b321e31480bf72adc3909b77db70c2d8
+__4ef4182b60e7edfc15ec45dc3492ae7b
 meta::sdoc('js::figment-parser-tests', <<'__b2b3dea79e6d16a85f2da25d0fce7d64');
 Unit tests for Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -2071,13 +2071,24 @@ caterwaul.clone('std continuation seq')(function () {
     eq(x, y)   = JSON.stringify(x) === JSON.stringify(y),
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
 __b2b3dea79e6d16a85f2da25d0fce7d64
-meta::sdoc('js::parse-json', <<'__d3d72ad290f81c11e38f4a93baf12f49');
+meta::sdoc('js::parse-json', <<'__5e03a75129a678ef12c01282698685e5');
 Figment parser runtime | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
-caterwaul.clone('std continuation seq')(function (require) {
-  seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')] *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_) + '\n')]]})(require);
-__d3d72ad290f81c11e38f4a93baf12f49
+caterwaul.clone('std continuation seq')(function () {
+  with_files(_) /cps.xs[seq[~xs *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_) + '\n')]]]})();
+__5e03a75129a678ef12c01282698685e5
+meta::sdoc('js::with-files', <<'__8509b104da2af7dd47d04327a0a38b96');
+NodeJS command-line interface wrapper | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+This function gives you a quick way to do stuff with loaded file contents. It interprets every command-line argument as a filename and reads it, then invokes your function on the array of
+strings that results.
+
+with_files = caterwaul.clone('std continuation seq')(function (require) {
+  return _ /cps.f[f(seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')]])]})(require);
+__8509b104da2af7dd47d04327a0a38b96
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
