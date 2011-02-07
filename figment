@@ -18,9 +18,7 @@ sub meta::define_form {
     my ($name, $value, %options) = @_;
     chomp $value;
     $data{"${namespace}::$name"} = $value unless $options{no_binding};
-    $delegate->($name, $value) unless $options{no_delegate};
-  };
-}
+    $delegate->($name, $value) unless $options{no_delegate}}}
 
 sub meta::eval_in {
   my ($what, $where) = @_;
@@ -31,13 +29,11 @@ sub meta::eval_in {
   my $result = eval $what;
   $@ =~ s/\(eval \d+\)/$where/ if $@;
   warn $@ if $@;
-  $result;
-}
+  $result}
 
 meta::define_form 'meta', sub {
   my ($name, $value) = @_;
-  meta::eval_in($value, "meta::$name");
-};
+  meta::eval_in($value, "meta::$name")};
 
 meta::meta('configure', <<'__25976e07665878d3fae18f050160343f');
 # A function to configure transients. Transients can be used to store any number of
@@ -48,7 +44,6 @@ sub meta::configure {
   $transient{$_}{$datatype} = $options{$_} for keys %options;
 }
 __25976e07665878d3fae18f050160343f
-
 meta::meta('externalize', <<'__9141b4e8752515391385516ae94b23b5');
 # Function externalization. Data types should call this method when defining a function
 # that has an external interface.
@@ -59,8 +54,7 @@ sub meta::externalize {
   *{"::$name"} = $implementation || $attribute;
 }
 __9141b4e8752515391385516ae94b23b5
-
-meta::meta('functor::editable', <<'__bbfdc65c8d51695de1cd6050232555bd');
+meta::meta('functor::editable', <<'__c30f2b0daccff461eb7b37a8aa090e27');
 # An editable type. This creates a type whose default action is to open an editor
 # on whichever value is mentioned. This can be changed using different flags.
 
@@ -77,15 +71,12 @@ sub meta::functor::editable {
       my $attribute             = "${typename}::$name";
       my ($command, @new_value) = @_;
 
-      return &{$options{default}}(retrieve($attribute))                                    if ref $options{default} eq 'CODE'                                          and not defined $command;
-      return edit($attribute)                                                              if $command eq 'edit'                      or $options{default} eq 'edit'   and not defined $command;
-      return associate($attribute, @new_value ? join(' ', @new_value) : join('', <STDIN>)) if $command eq '=' or $command eq 'import' or $options{default} eq 'import' and not defined $command;
-      return retrieve($attribute);
-    };
-  };
-}
-__bbfdc65c8d51695de1cd6050232555bd
-
+      if (not defined $command) {
+        return &{$options{default}}(retrieve($attribute)) if ref $options{default} eq 'CODE';
+        return edit($attribute) if $command eq 'edit' or $options{default} eq 'edit';
+        return associate($attribute, @new_value ? join(' ', @new_value) : join('', <STDIN>)) if $command eq '=' or $command eq 'import' or $options{default} eq 'import'}
+      else {return retrieve($attribute)}}}}
+__c30f2b0daccff461eb7b37a8aa090e27
 meta::meta('type::bootstrap', <<'__297d03fb32df03b46ea418469fc4e49e');
 # Bootstrap attributes don't get executed. The reason for this is that because
 # they are serialized directly into the header of the file (and later duplicated
@@ -95,12 +86,10 @@ meta::meta('type::bootstrap', <<'__297d03fb32df03b46ea418469fc4e49e');
 meta::configure 'bootstrap', extension => '.pl', inherit => 1;
 meta::define_form 'bootstrap', sub {};
 __297d03fb32df03b46ea418469fc4e49e
-
 meta::meta('type::cached_dependency', <<'__e9455b403cbff27bbcc41d917fef482f');
 meta::configure 'cached_dependency', inherit => 0, extension => '';
 meta::define_form 'cached_dependency', \&meta::bootstrap::implementation;
 __e9455b403cbff27bbcc41d917fef482f
-
 meta::meta('type::configuration', <<'__d67e10a128e6b1d958c5b9d3bbe25aa4');
 meta::functor::editable 'configuration', inherit => 0, extension => '.conf', default => sub {
   # Any lines starting with #, with or without leading whitespace, are treated as comments.
@@ -115,7 +104,6 @@ meta::functor::editable 'configuration', inherit => 0, extension => '.conf', def
   @key_values;
 };
 __d67e10a128e6b1d958c5b9d3bbe25aa4
-
 meta::meta('type::data', 'meta::functor::editable \'data\', extension => \'\', inherit => 0, default => \'cat\';');
 meta::meta('type::fig', 'meta::functor::editable \'fig\', default => \'edit\', extension => \'.fig\', inherit => 1;');
 meta::meta('type::function', <<'__d93b3cc15693707dac518e3d6b1f5648');
@@ -125,7 +113,6 @@ meta::define_form 'function', sub {
   meta::externalize $name, "function::$name", meta::eval_in("sub {\n$value\n}", "function::$name");
 };
 __d93b3cc15693707dac518e3d6b1f5648
-
 meta::meta('type::inc', <<'__c95915391b969734305f2f492d5ca8e3');
 meta::configure 'inc', inherit => 1, extension => '.pl';
 meta::define_form 'inc', sub {
@@ -146,7 +133,6 @@ meta::define_form 'inc', sub {
   }
 };
 __c95915391b969734305f2f492d5ca8e3
-
 meta::meta('type::internal_function', <<'__34abb44c67c7e282569e28ef6f4d62ab');
 meta::configure 'internal_function', extension => '.pl', inherit => 1;
 meta::define_form 'internal_function', sub {
@@ -154,7 +140,6 @@ meta::define_form 'internal_function', sub {
   *{$name} = meta::eval_in("sub {\n$value\n}", "internal_function::$name");
 };
 __34abb44c67c7e282569e28ef6f4d62ab
-
 meta::meta('type::js', 'meta::functor::editable \'js\', extension => \'.js\', inherit => 1;');
 meta::meta('type::library', <<'__a9c0193f297bbc96a78eb5e27727fd30');
 meta::configure 'library', extension => '.pl', inherit => 1;
@@ -166,7 +151,6 @@ meta::define_form 'library', sub {
   };
 };
 __a9c0193f297bbc96a78eb5e27727fd30
-
 meta::meta('type::message_color', <<'__794bf137c425293738f07636bcfb5c55');
 meta::configure 'message_color', extension => '', inherit => 1;
 meta::define_form 'message_color', sub {
@@ -174,7 +158,6 @@ meta::define_form 'message_color', sub {
   terminal::color($name, $value);
 };
 __794bf137c425293738f07636bcfb5c55
-
 meta::meta('type::meta', <<'__640f25635ce2365b0648962918cf9932');
 # This doesn't define a new type. It customizes the existing 'meta' type
 # defined in bootstrap::initialization. Note that horrible things will
@@ -182,13 +165,11 @@ meta::meta('type::meta', <<'__640f25635ce2365b0648962918cf9932');
 
 meta::configure 'meta', extension => '.pl', inherit => 1;
 __640f25635ce2365b0648962918cf9932
-
 meta::meta('type::note', 'meta::functor::editable \'note\', extension => \'.sdoc\', inherit => 0, default => \'edit\';');
 meta::meta('type::parent', <<'__607e9931309b1b595424bedcee5dfa45');
 meta::define_form 'parent', \&meta::bootstrap::implementation;
 meta::configure 'parent', extension => '', inherit => 1;
 __607e9931309b1b595424bedcee5dfa45
-
 meta::meta('type::retriever', <<'__6e847a9d205e4a5589765a3366cdd115');
 meta::configure 'retriever', extension => '.pl', inherit => 1;
 meta::define_form 'retriever', sub {
@@ -196,7 +177,6 @@ meta::define_form 'retriever', sub {
   $transient{retrievers}{$name} = meta::eval_in("sub {\n$value\n}", "retriever::$name");
 };
 __6e847a9d205e4a5589765a3366cdd115
-
 meta::meta('type::sdoc', <<'__392c65eddae300e2aa67014b85884979');
 # A meta-type for other types. So retrieve('js::main') will work if you have
 # the attribute 'sdoc::js::main'. The filename will be main.js.sdoc.
@@ -205,7 +185,6 @@ meta::functor::editable 'sdoc', inherit => 1, extension => sub {
   extension_for(attribute($_[0])) . '.sdoc';
 };
 __392c65eddae300e2aa67014b85884979
-
 meta::meta('type::state', <<'__c1f29670be26f1df6100ffe4334e1202');
 # Allows temporary or long-term storage of states. Nothing particularly insightful
 # is done about compression, so storing alternative states will cause a large
@@ -217,7 +196,6 @@ meta::meta('type::state', <<'__c1f29670be26f1df6100ffe4334e1202');
 meta::configure 'state', inherit => 0, extension => '.pl';
 meta::define_form 'state', \&meta::bootstrap::implementation;
 __c1f29670be26f1df6100ffe4334e1202
-
 meta::meta('type::template', <<'__25f4d6eafb1d3eea6d5d3d9a71a5623e');
 meta::configure 'template', extension => '.pl', inherit => 1;
 meta::define_form 'template', sub {
@@ -225,10 +203,9 @@ meta::define_form 'template', sub {
   meta::externalize "template::$name", "template::$name", meta::eval_in("sub {\n$value\n}", "template::$name");
 };
 __25f4d6eafb1d3eea6d5d3d9a71a5623e
-
 meta::meta('type::vim_highlighter', 'meta::functor::editable \'vim_highlighter\', extension => \'.vim\', inherit => 1, default => \'edit\';');
 meta::meta('type::watch', 'meta::functor::editable \'watch\', prefix => \'watch::\', inherit => 1, extension => \'.pl\', default => \'cat\';');
-meta::bootstrap('initialization', <<'__2ee777615cfe1237872135fcc565cd54');
+meta::bootstrap('initialization', <<'__8774229a1a0ce7fd056d81ba0b077f79');
 #!/usr/bin/perl
 # Run perldoc on this file for documentation.
 
@@ -249,9 +226,7 @@ sub meta::define_form {
     my ($name, $value, %options) = @_;
     chomp $value;
     $data{"${namespace}::$name"} = $value unless $options{no_binding};
-    $delegate->($name, $value) unless $options{no_delegate};
-  };
-}
+    $delegate->($name, $value) unless $options{no_delegate}}}
 
 sub meta::eval_in {
   my ($what, $where) = @_;
@@ -262,16 +237,13 @@ sub meta::eval_in {
   my $result = eval $what;
   $@ =~ s/\(eval \d+\)/$where/ if $@;
   warn $@ if $@;
-  $result;
-}
+  $result}
 
 meta::define_form 'meta', sub {
   my ($name, $value) = @_;
-  meta::eval_in($value, "meta::$name");
-};
+  meta::eval_in($value, "meta::$name")};
 
-__2ee777615cfe1237872135fcc565cd54
-
+__8774229a1a0ce7fd056d81ba0b077f79
 meta::bootstrap('perldoc', <<'__c63395cbc6f7160b603befbb2d9b6700');
 =head1 Self-modifying Perl script
 
@@ -289,13 +261,11 @@ run this script with the 'usage' argument.
 =cut
 
 __c63395cbc6f7160b603befbb2d9b6700
-
 meta::cached_dependency('caterwaul.all.js', '(function (f){return f(f)})(function (self,undefined){var qw=function (x){return x.split(/\\s+/)},id=function (x){return x},se=function (x,f){return f&&f.call(x,x)||x},gensym=(function (n,m){return function (){return \'gensym_\'+n.toString(36)+\'_\'+(++m).toString(36)}})(+new Date(),Math.random()*(1<<30)>>>0),bind=function (f,t){return f.binding===t?f:f.original?bind(f.original,t):merge(function (){return f.apply(t,arguments)},{original:f,binding:t})},map=function (f,xs){for (var i=0,ys=[],l=xs.length;i<l;++i)ys.push(f(xs[i],i));return ys},hash=function (s){for (var i=0,xs=qw(s),o={},l=xs.length;i<l;++i)o[xs[i]]=true;return annotate_keys(o)},merge=function (o){for (var i=1,l=arguments.length,_=null;_=arguments[i],i<l;++i)if (_)for (var k in _)has(_,k)&&(o[k]=_[k]);return o},extend=function (f){merge.apply(null,[f.prototype].concat(Array.prototype.slice.call(arguments,1)));return f},annotate_keys=function (o){var max=0;for (var k in o)own.call(o,k)&&(max=k.length>max?k.length:max);o._max_length=max;return o},has=function (o,p){return p&&!(p.length>o._max_length)&&p!==\'_max_length\'&&own.call(o,p)},own=Object.prototype.hasOwnProperty,_caterwaul=typeof caterwaul===\'undefined\'?undefined:caterwaul,syntax_node_inspect=function (x){return x?x.inspect():\'(<>)\'},syntax_node_tostring=function (x){return x?x.serialize?x.serialize():x.toString():\'\'},node_methods={_replace:function (n){return (n.l=this.l)&&(this.l.r=n),(n.r=this.r)&&(this.r.l=n),this},_append_to:function (n){return n&&n._append(this),this},_reparent:function (n){return this.p&&this.p[0]===this&&(this.p[0]=n),this},_fold_l:function (n){return this._append(this.l&&this.l._unlink(this))},_append:function (n){return (this[this.length++]=n)&&(n.p=this),this},_fold_r:function (n){return this._append(this.r&&this.r._unlink(this))},_sibling:function (n){return n.p=this.p,(this.r=n).l=this},_fold_lr:function (){return this._fold_l()._fold_r()},_wrap:function (n){return n.p=this._replace(n).p,this._reparent(n),delete this.l,delete this.r,this._append_to(n)},_fold_rr:function (){return this._fold_r()._fold_r()},_unlink:function (n){return this.l&&(this.l.r=this.r),this.r&&(this.r.l=this.l),delete this.l,delete this.r,this._reparent(n)},pop:function (){return --this.length,this},push:function (x){return this[this.length++]=x,this},id:function (){return this.id||(this.id=gensym())},each:function (f){for (var i=0,l=this.length;i<l;++i)f(this[i],i);return this},map:function (f){for (var n=new this.constructor(this),i=0,l=this.length;i<l;++i)n.push(f(this[i],i)||this[i]);return n},nmap:function (f){for (var n=new this.constructor(this),i=0,l=this.length,r;i<l;++i)(r=f(this[i],i))&&n.push(r);return n},reach:function (f){f(this);this.each(function (n){n&&n.reach(f)});return this},rmap:function (f){var r=f(this);return !r||r===this?this.map(function (n){return n&&n.rmap(f)}):r.data===undefined?new this.constructor(r):r},rnmap:function (f){var r=f(this);return r===this?this.nmap(function (n){return n&&n.rnmap(f)}):r&&r.data===undefined?new this.constructor(r):r},clone:function (){return this.rmap(function (){return false})},collect:function (p){var ns=[];this.reach(function (n){p(n)&&ns.push(n)});return ns},replace:function (rs){return this.rnmap(function (n){return own.call(rs,n.data)?rs[n.data]:n})},repopulated_with:function (xs){return new this.constructor(this.data,xs)},change:function (i,x){return se(new this.constructor(this.data,Array.prototype.slice.call(this)),function (n){n[i]=x})},compose_single:function (i,f){return this.change(i,f(this[i]))},traverse:function (f){f({entering:this});f({exiting:this.each(function (n){n&&n.traverse(f)})});return this},flatten:function (d){d=d||this.data;return d!==this.data?this.as(d):!(has(parse_lr,d)&&this.length)?this:has(parse_associates_right,d)?se(new this.constructor(d),bind(function (n){for (var i=this;i&&i.data===d;i=i[1])n.push(i[0]);n.push(i)},this)):se(new this.constructor(d),bind(function (n){for (var i=this,ns=[];i.data===d;i=i[0])i[1]&&ns.push(i[1]);ns.push(i);for (i=ns.length-1;i>=0;--i)n.push(ns[i])},this))},unflatten:function (){var right=has(parse_associates_right,this.data);return this.length<=2?this:se(new this.constructor(this.data),bind(function (n){if (right)for (var i=0,l=this.length-1;i<l;++i)n=n.push(this[i]).push(i<l-2?new this.constructor(this.data):this[i])[1];else for (var i=this.length-1;i>=1;--i)n=n.push(i>1?new this.constructor(this.data):this[0]).push(this[i])[0]},this))},as:function (d){return this.data===d?this:new this.constructor(d).push(this)},is_string:function (){return /[\'"]/.test(this.data.charAt(0))},as_escaped_string:function (){return this.data.substr(1,this.data.length-2)},is_number:function (){return /^-?(0x|\\d|\\.\\d+)/.test(this.data)},as_number:function (){return Number(this.data)},is_boolean:function (){return this.data===\'true\'||this.data===\'false\'},as_boolean:function (){return this.data===\'true\'},is_regexp:function (){return /^\\/./.test(this.data)},as_escaped_regexp:function (){return this.data.substring(1,this.data.lastIndexOf(\'/\'))},has_grouped_block:function (){return has(parse_r_until_block,this.data)},is_block:function (){return has(parse_block,this.data)},is_blockless_keyword:function (){return has(parse_r_optional,this.data)},is_null_or_undefined:function (){return this.data===\'null\'||this.data===\'undefined\'},is_constant:function (){return this.is_number()||this.is_string()||this.is_boolean()||this.is_regexp()||this.is_null_or_undefined()},left_is_lvalue:function (){return /=$/.test(this.data)||/\\+\\+$/.test(this.data)||/--$/.test(this.data)},is_empty:function (){return !this.length},has_parameter_list:function (){return this.data===\'function\'||this.data===\'catch\'},has_lvalue_list:function (){return this.data===\'var\'||this.data===\'const\'},is_dereference:function (){return this.data===\'.\'||this.data===\'[]\'},is_invocation:function (){return this.data===\'()\'},is_contextualized_invocation:function (){return this.is_invocation()&&this[0]&&this[0].is_dereference()},is_invisible:function (){return has(parse_invisible,this.data)},is_binary_operator:function (){return has(parse_lr,this.data)},is_prefix_unary_operator:function (){return has(parse_r,this.data)},is_postfix_unary_operator:function (){return has(parse_l,this.data)},is_unary_operator:function (){return this.is_prefix_unary_operator()||this.is_postfix_unary_operator()},accepts:function (e){return parse_accepts[this.data]&&this.accepts[parse.data]===(e.data||e)},bindings:function (hash){var result=hash||{};this.reach(function (n){if (n.binds_a_value)result[n.data]=n.value});return result},match:function (pattern){return macro_try_match(pattern,this)},toString:function (){return this.inspect()},inspect:function (){return (this.l?\'(left) <- \':\'\')+\'(\'+this.data+(this.length?\' \'+map(syntax_node_inspect,this).join(\' \'):\'\')+\')\'+(this.r?\' -> \'+this.r.inspect():\'\')},serialize:function (){var op=this.data,right=this.r?\'/* -> \'+this.r.serialize()+\' */\':\'\',space=/\\w/.test(op.charAt(op.length-1))?\' \':\'\',s=has(parse_invisible,op)?map(syntax_node_tostring,this).join(space):has(parse_invocation,op)?map(syntax_node_tostring,[this[0],op.charAt(0),this[1],op.charAt(1)]).join(space):has(parse_ternary,op)?map(syntax_node_tostring,[this[0],op,this[1],parse_group[op],this[2]]).join(space):has(parse_group,op)?op+map(syntax_node_tostring,this).join(space)+parse_group[op]:has(parse_lr,op)?this.length?map(syntax_node_tostring,this).join(space+op+space):op:has(parse_r,op)||has(parse_r_optional,op)?op.replace(/^u/,\'\')+space+(this[0]?this[0].serialize():\'\'):has(parse_r_until_block,op)?has(parse_accepts,op)&&this[1]&&this[1].data!==\'{\'&&this[2]&&parse_accepts[op]===this[2].data?op+space+map(syntax_node_tostring,[this[0],this[1],\';\',this[2]]).join(\'\'):op+space+map(syntax_node_tostring,this).join(\'\'):has(parse_l,op)?(this[0]?this[0].serialize():\'\')+space+op:op;return right?s+right:s}},ref=extend(function (value){if (value instanceof this.constructor){this.value=value.value;this.data=value.data}else {this.value=value;this.data=gensym()}},{length:0,binds_a_value:true},node_methods),syntax_node=extend(function (data){if (data instanceof this.constructor)this.data=data.data,this.length=0;else {this.data=data&&data.toString();this.length=0;for (var i=1,l=arguments.length,_;_=arguments[i],i<l;++i)for (var j=0,lj=_.length,it,itc;_ instanceof Array?(it=_[j],j<lj):(it=_,!j);++j)this._append((itc=it.constructor)===String||itc===Number||itc===Boolean?new this.constructor(it):it)}},node_methods),lex_op=hash(\'. new ++ -- u++ u-- u+ u- typeof u~ u! ! * / % + - << >> >>> < > <= >= instanceof in == != === !== & ^ | && || ? = += -= *= /= %= &= |= ^= <<= >>= >>>= : , \'+\'return throw case var const break continue void else u; ;\'),lex_table=function (s){for (var i=0,xs=[false];i<8;++i)xs.push.apply(xs,xs);for (var i=0,l=s.length;i<l;++i)xs[s.charCodeAt(i)]=true;return xs},lex_float=lex_table(\'.0123456789\'),lex_decimal=lex_table(\'0123456789\'),lex_integer=lex_table(\'0123456789abcdefABCDEFx\'),lex_exp=lex_table(\'eE\'),lex_space=lex_table(\' \\n\\r\\t\'),lex_bracket=lex_table(\'()[]{}\'),lex_opener=lex_table(\'([{\'),lex_punct=lex_table(\'+-*/%&|^!~=<>?:;.,\'),lex_eol=lex_table(\'\\n\\r\'),lex_regexp_suffix=lex_table(\'gims\'),lex_quote=lex_table(\'\\\'"/\'),lex_slash=\'/\'.charCodeAt(0),lex_star=\'*\'.charCodeAt(0),lex_back=\'\\\\\'.charCodeAt(0),lex_x=\'x\'.charCodeAt(0),lex_dot=\'.\'.charCodeAt(0),lex_zero=\'0\'.charCodeAt(0),lex_postfix_unary=hash(\'++ --\'),lex_ident=lex_table(\'$_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\'),parse_reduce_order=map(hash,[\'function\',\'( [ . [] ()\',\'new delete\',\'u++ u-- ++ -- typeof u~ u! u+ u-\',\'* / %\',\'+ -\',\'<< >> >>>\',\'< > <= >= instanceof in\',\'== != === !==\',\'&\',\'^\',\'|\',\'&&\',\'||\',\'case\',\'?\',\'= += -= *= /= %= &= |= ^= <<= >>= >>>=\',\':\',\',\',\'return throw break continue void\',\'var const\',\'if else try catch finally for switch with while do\',\';\']),parse_associates_right=hash(\'= += -= *= /= %= &= ^= |= <<= >>= >>>= ~ ! new typeof u+ u- -- ++ u-- u++ ? if else function try catch finally for switch case with while do\'),parse_inverse_order=(function (xs){for (var o={},i=0,l=xs.length;i<l;++i)for (var k in xs[i])has(xs[i],k)&&(o[k]=i);return annotate_keys(o)})(parse_reduce_order),parse_index_forward=(function (rs){for (var xs=[],i=0,l=rs.length,_=null;_=rs[i],xs[i]=true,i<l;++i)for (var k in _)if (has(_,k)&&(xs[i]=xs[i]&&!has(parse_associates_right,k)))break ;return xs})(parse_reduce_order),parse_lr=hash(\'[] . () * / % + - << >> >>> < > <= >= instanceof in == != === !== & ^ | && || = += -= *= /= %= &= |= ^= <<= >>= >>>= , : ;\'),parse_r_until_block=annotate_keys({\'function\':2,\'if\':1,\'do\':1,\'catch\':1,\'try\':1,\'for\':1,\'while\':1,\'with\':1}),parse_accepts=annotate_keys({\'if\':\'else\',\'do\':\'while\',\'catch\':\'finally\',\'try\':\'catch\'}),parse_invocation=hash(\'[] ()\'),parse_r_optional=hash(\'return throw break continue else\'),parse_also_expression=hash(\'function\'),parse_r=hash(\'u+ u- u! u~ u++ u-- new typeof finally var const void delete\'),parse_block=hash(\'; {\'),parse_invisible=hash(\'i;\'),parse_l=hash(\'++ --\'),parse_group=annotate_keys({\'(\':\')\',\'[\':\']\',\'{\':\'}\',\'?\':\':\'}),parse_ambiguous_group=hash(\'[ (\'),parse_ternary=hash(\'?\'),parse_not_a_value=hash(\'function if for while catch\'),parse=function (input){var s=input.toString(),mark=0,c=0,re=true,esc=false,dot=false,exp=false,close=0,t=\'\',i=0,l=s.length,cs=function (i){return s.charCodeAt(i)},grouping_stack=[],gs_top=null,head=null,parent=null,indexes=map(function (){return []},parse_reduce_order),invocation_nodes=[],all_nodes=[],new_node=function (n){return all_nodes.push(n),n},push=function (n){return head?head._sibling(head=n):(head=n._append_to(parent)),new_node(n)};while ((mark=i)<l){while (lex_space[c=cs(i)]&&i<l)mark=++i;esc=exp=dot=t=false;if (lex_bracket[c]){t=!!++i;re=lex_opener[c]}else if (c===lex_slash&&cs(i+1)===lex_star&&(i+=2)){while (++i<l&&cs(i)!==lex_slash||cs(i-1)!==lex_star);t=!++i}else if (c===lex_slash&&cs(i+1)===lex_slash){while (++i<l&&!lex_eol[cs(i)]);t=false}else if (lex_quote[c]&&(close=c)&&re&&!(re=!(t=s.charAt(i)))){while (++i<l&&(c=cs(i))!==close||esc)esc=!esc&&c===lex_back;while (++i<l&&lex_regexp_suffix[cs(i)]);t=true}else if (c===lex_zero&&lex_integer[cs(i+1)]){while (++i<l&&lex_integer[cs(i)]);re=!(t=true)}else if (lex_float[c]&&(c!==lex_dot||lex_decimal[cs(i+1)])){while (++i<l&&(lex_decimal[c=cs(i)]||(dot^(dot|=c===lex_dot))||(exp^(exp|=lex_exp[c]&&++i))));while (i<l&&lex_decimal[cs(i)])++i;re=!(t=true)}else if (lex_punct[c]&&(t=re?\'u\':\'\',re=true)){while (i<l&&lex_punct[cs(i)]&&has(lex_op,t+s.charAt(i)))t+=s.charAt(i++);re=!has(lex_postfix_unary,t)}else {while (++i<l&&lex_ident[cs(i)]);re=has(lex_op,t=s.substring(mark,i))}if (i===mark)throw new Error(\'Caterwaul lex error at "\'+s.substr(mark,40)+\'" with leading context "\'+s.substr(mark-40,40)+\'" (probably a Caterwaul bug)\');if (t===false)continue ;t=t===true?s.substring(mark,i):t===\'u;\'?\';\':t;t===gs_top?(grouping_stack.pop(),gs_top=grouping_stack[grouping_stack.length-1],head=head?head.p:parent,parent=null):(has(parse_group,t)?(grouping_stack.push(gs_top=parse_group[t]),parent=push(new_node(new syntax_node(t))),head=null):push(new_node(new syntax_node(t))),has(parse_inverse_order,t)&&indexes[parse_inverse_order[t]].push(head||parent));re|=t===\')\'&&head.l&&has(parse_r_until_block,head.l.data)}for (var i=0,l=indexes.length,forward,_;_=indexes[i],forward=parse_index_forward[i],i<l;++i)for (var j=forward?0:_.length-1,lj=_.length,inc=forward?1:-1,node,data;node=_[j],data=node&&node.data,forward?j<lj:j>=0;j+=inc)if (has(parse_lr,data))node._fold_lr();else if (has(parse_ambiguous_group,data)&&node.l&&(node.l.data===\'.\'||!(has(lex_op,node.l.data)||has(parse_not_a_value,node.l.data))))invocation_nodes.push(node.l._wrap(new_node(new syntax_node(data+parse_group[data]))).p._fold_r());else if (has(parse_l,data))node._fold_l();else if (has(parse_r,data))node._fold_r();else if (has(parse_ternary,data)){node._fold_lr();var temp=node[1];node[1]=node[0];node[0]=temp}else if (has(parse_r_until_block,data)&&node.r&&node.r.data!==\':\'){for (var count=0,limit=parse_r_until_block[data];count<limit&&node.r&&!has(parse_block,node.r.data);++count)node._fold_r();node.r&&node.r.data!==\';\'&&node._fold_r();if (has(parse_accepts,data)&&parse_accepts[data]===(node.r&&node.r.r&&node.r.r.data))node._fold_r().pop()._fold_r();else if (has(parse_accepts,data)&&parse_accepts[data]===(node.r&&node.r.data))node._fold_r()}else if (has(parse_r_optional,data))node.r&&node.r.data!==\';\'&&node._fold_r();for (var i=all_nodes.length-1,_;_=all_nodes[i],i>=0;--i)_.r&&_._wrap(new syntax_node(\'i;\')).p._fold_r();for (var i=0,l=invocation_nodes.length,_,child;_=invocation_nodes[i],i<l;++i)(child=_[1]=_[1][0])&&(child.p=_);while (head.p)head=head.p;for (var i=all_nodes.length-1;i>=0;--i)delete all_nodes[i].p;return head},macro_array_push=Array.prototype.push,macro_try_match=function (pattern,t){if (pattern.data===\'_\')return [t];if (pattern.data!==t.data||pattern.length!==t.length)return null;for (var i=0,l=pattern.length,wildcards=[],match=null;i<l;++i)if (match=macro_try_match(pattern[i],t[i]))macro_array_push.apply(wildcards,match);else return null;return wildcards},macro_expand=function (t,macros,expanders,context){return t.rmap(function (n){for (var i=macros.length-1,macro,match,replacement;i>=0&&(macro=macros[i]);--i)if ((match=macro_try_match(macro,n))&&(replacement=expanders[i].apply(context,match)))return replacement})},compile=function (tree,environment){var vars=[],values=[],bindings=merge({},environment||{},tree.bindings()),s=gensym();for (var k in bindings)if (has(bindings,k))vars.push(k),values.push(bindings[k]);var code=map(function (v){return \'var \'+v+\'=\'+s+\'.\'+v},vars).join(\';\')+\';return(\'+tree.serialize()+\')\';try {return (new Function(s,code))(bindings)}catch (e){throw new Error(\'Caught \'+e+\' while compiling \'+code)}},associator_for=function (f){return function (name,behavior,value){return f[name]=(f.behaviors[f.attributes[name]=behavior]||id).call(f,value),f}},shallow_copy=function (x){return x&&(x.constructor===Array?x.slice():x.clone?x.clone():merge({},x))},copy_of=function (f){var g=merge(function (){return g.init.apply(g,arguments)},{behaviors:shallow_copy(f.behaviors),attributes:{}});return se(g,function (g){(g.associate=associator_for(g))(\'behavior\',\'method\',function (name,definition){this.behaviors[name]=definition;return this.associate(name,\'method\',function (attribute,value){return this.associate(attribute,name,value)})}).behavior(\'method\',g.behaviors.method);for (var k in f.attributes)has(f.attributes,k)&&g.associate(k,f.attributes[k],f[k])})};return caterwaul=merge(copy_of({behaviors:{method:function (v){return bind(v,this)}}}),{deglobalize:function (){caterwaul=_caterwaul;return this}}).method(\'tconfiguration\',function (configs,name,f){this.configurations[name]=this.clone(configs)(f);return this}).behavior(\'field\').behavior(\'shallow\',shallow_copy).method(\'configuration\',function (name,f){this.configurations[name]=f;return this}).method(\'namespace\',function (s){return this[s]||this.shallow(s,{})[s]}).shallow(\'macro_patterns\',[]).shallow(\'macro_expanders\',[]).shallow(\'configurations\',{}).shallow(\'has\',{}).field(\'syntax\',syntax_node).field(\'ref\',ref).field(\'parse\',parse).field(\'compile\',compile).field(\'gensym\',gensym).field(\'map\',map).field(\'self\',self).field(\'global\',function (){return caterwaul}).field(\'decompile\',parse).method(\'macro\',function (pattern,expansion){return this.macro_patterns.push(pattern),this.macro_expanders.push(expansion),this}).method(\'init\',function (f){return this.compile(this.macroexpand(this.decompile(f)))}).method(\'rmacro\',function (pattern,expander){if (!expander.apply)throw new Error(\'caterwaul.rmacro: Cannot define macro with non-function expander\');else return this.macro(pattern,function (){var t=expander.apply(this,arguments);return t&&this.macroexpand(t)})}).method(\'macroexpand\',function (t){return macro_expand(t,this.macro_patterns,this.macro_expanders,this)}).method(\'reinitialize\',function (transform,erase_configurations){var c=transform(this.self),result=c(c).deglobalize();erase_configurations||(result.configurations=this.configurations);return result}).shallow(\'util\',{extend:extend,merge:merge,se:se,macro_try_match:macro_try_match,id:id,bind:bind,map:map,qw:qw}).method(\'magic\',(function (table){return function (name){return table[name]||(table[name]={})}})({})).method(\'clone\',function (){return arguments.length?this.clone().configure.apply(null,arguments):copy_of(this)}).method(\'configure\',function (){for (var i=0,l=arguments.length,_;_=arguments[i],i<l;++i)if (_.constructor===String)for (var cs=qw(arguments[i]),j=0,lj=cs.length;_=cs[j],j<lj;++j)if (this.configurations[_])this.has[_]||(this.has[_]=this.configurations[_].call(this)||this);else throw new Error(\'caterwaul.configure error: configuration "\'+_+\'" does not exist\');else _ instanceof Array?this.configure.apply(this,_.slice()):this(_).call(this);return this})});caterwaul.configuration(\'std.qs\',function (){this.macro(this.parse(\'qs[_]\'),function (tree){return new this.ref(tree)}).macro(this.parse(\'qse[_]\'),function (tree){return new this.ref(this.macroexpand(tree))}).macro(this.parse(\'literal[_]\'),function (tree){return tree})}).tconfiguration(\'std.qs\',\'std.qg\',function (){this.rmacro(qs[qg[_]],function (expression){return expression.as(\'(\')})}).tconfiguration(\'std.qs std.qg\',\'std.fn\',function (){this.configure(\'std.qg\').rmacro(qs[fn[_][_]],function (vars,expression){return qs[qg[function (vars){return expression}]].replace({vars:vars,expression:expression})}).rmacro(qs[fn_[_]],function (expression){return qs[qg[function (){return expression}]].replace({expression:expression})}).rmacro(qs[fb[_][_]],function (vars,expression){return qse[fn[_t][fn_[fn[vars][e].apply(_t,arguments)]](this)].replace({_t:this.gensym(),vars:vars,e:expression})}).rmacro(qs[fb_[_]],function (expression){return qse[fn[_t][fn_[fn_[e].apply(_t,arguments)]](this)].replace({_t:this.gensym(),e:expression})}).rmacro(qs[fc[_][_]],function (vars,body){return qse[qg[fn[vars][body,undefined]]].replace({vars:vars,body:body})}).rmacro(qs[fc_[_]],function (body){return qse[qg[fn[vars][body,undefined]]].replace({body:body})})}).tconfiguration(\'std.qs std.qg std.fn\',\'std.obj\',function (){this.configure(\'std.qg std.fn\').rmacro(qs[_/mb/_],fn[object,method][qse[qg[fn[_o][_o.m&&fn_[_o.m.apply(_o,arguments)]]](o)].replace({_o:this.gensym(),o:object,m:method})]).rmacro(qs[_/mb[_]],fn[object,method][qse[qg[fn[_o,_m][_o[_m]&&fn_[_o[_m].apply(_o,arguments)]]](o,m)].replace({_o:this.gensym(),_m:this.gensym(),o:object,m:method})]).rmacro(qs[_/se._[_]],fn[v,n,b][qse[qg[fn[n][b,n]].call(this,v)].replace({b:b,n:n,v:v})]).rmacro(qs[_/se[_]],fn[v,b][qse[v/se._[b]].replace({b:b,v:v})]).rmacro(qs[_/re._[_]],fn[v,n,b][qse[qg[fn[n][b]].call(this,v)].replace({b:b,n:n,v:v})]).rmacro(qs[_/re[_]],fn[v,b][qse[v/re._[b]].replace({b:b,v:v})])}).tconfiguration(\'std.qs std.qg std.fn\',\'std.bind\',function (){this.configure(\'std.qg\');var lf=fb[form][this.rmacro(form,l_expander)],lsf=fb[form][this.rmacro(form,l_star_expander)],l_star_expander=fb[vars,expression][qs[qg[function (){var vars;return expression}].call(this)].replace({vars:this.macroexpand(vars),expression:expression})],l_expander=fb[vars,expression][vars=this.macroexpand(vars).flatten(\',\'),qs[qg[function (vars){return e}].call(this,values)].replace({vars:vars.map(fn[n][n[0]]).unflatten(),e:expression,values:vars.map(fn[n][n[1]]).unflatten()})];lf(qs[l[_] in _]),lf(qs[l[_][_]]),lf(this.parse(\'let [_] in _\')),lf(this.parse(\'let [_][_]\')).rmacro(qs[_,where[_]],fn[expression,vars][l_expander(vars,expression)]);lsf(qs[l*[_] in _]),lsf(qs[l*[_][_]]),lsf(this.parse(\'let*[_] in _\')),lsf(this.parse(\'let*[_][_]\')).rmacro(qs[_,where*[_]],fn[expression,vars][l_star_expander(vars,expression)])}).tconfiguration(\'std.qs std.qg std.fn\',\'std.lvalue\',function (){this.rmacro(qs[_(_)=_],fn[base,params,value][qs[base=qg[function (params){return value}]].replace({base:base,params:params,value:value})])}).tconfiguration(\'std.qs std.fn\',\'std.cond\',function (){this.configure(\'std.qg\').rmacro(qs[_,when[_]],fn[expression,cond][qs[qg[l]&&qg[r]].replace({l:cond,r:expression})]).rmacro(qs[_,unless[_]],fn[expression,cond][qs[!qg[l]&&qg[r]].replace({l:cond,r:expression})])}).tconfiguration(\'std.qs std.fn std.bind std.lvalue\',\'std.defmacro\',function (){l[wildcard(n)=n.data.constructor===String&&n.data.charAt(0)===\'_\'&&\'_\'] in this.macro(qs[defmacro[_][_]],fn[pattern,expansion][this.rmacro(pattern,this.compile(this.macroexpand(expansion))),qs[null]]).macro(qs[defsubst[_][_]],fn[pattern,expansion][this.rmacro(pattern.rmap(wildcard),l[wildcards=pattern.collect(wildcard)] in fn_[l[hash={},as=arguments][this.util.map(fn[v,i][hash[v.data]=as[i]],wildcards),expansion.replace(hash)]]),qs[null]])}).tconfiguration(\'std.qs std.fn std.bind\',\'std.with_gensyms\',function (){this.rmacro(qs[with_gensyms[_][_]],fn[vars,expansion][l[bindings={}][vars.flatten(\',\').each(fb[v][bindings[v.data]=this.gensym()]),qs[qs[_]].replace({_:expansion.replace(bindings)})]])}).tconfiguration(\'std.qs std.fn\',\'std.compile_eval\',function (){this.macro(qs[compile_eval[_]],fn[e][new this.ref(this.compile(this.macroexpand(qs[fn_[_]].replace({_:e}))).call(this))])}).tconfiguration(\'std.qs std.fn\',\'std.ref\',function (){this.macro(qs[caterwaul],fn_[new this.ref(this)])}).tconfiguration(\'std.qs std.bind std.lvalue\',\'std.locally\',function (){l*[t=this,handler(c,e)=t.clone(c.is_string()?c.as_escaped_string():c.data).macroexpand(e)] in this.macro(qs[locally[_][_]],handler).macro(qs[locally._[_]],handler)}).tconfiguration(\'std.qs std.fn std.bind\',\'std.string\',function (){this.rmacro(qs[_],fn[string][string.is_string()&&/#\\{[^\\}]+\\}/.test(string.data)&&l*[q=string.data.charAt(0),s=string.as_escaped_string(),eq=new RegExp(\'\\\\\\\\\'+q,\'g\'),strings=s.split(/#\\{[^\\}]+\\}/),xs=[],result=new this.syntax(\'+\')][s.replace(/#\\{([^\\}]+)\\}/g,fn[_,s][xs.push(s),\'\']),this.util.map(fb[x,i][result.push(new this.syntax(q+(i<strings.length?strings[i]:\'\')+q)).push(new this.syntax(\'(\',this.parse(xs[i].replace(eq,q))))],xs),new this.syntax(\'(\',result.push(new this.syntax(q+(xs.length<strings.length?strings[strings.length-1]:\'\')+q)).unflatten())]])}).configuration(\'std\',function (){this.configure(\'std.qs std.qg std.bind std.lvalue std.cond std.fn std.obj std.defmacro std.with_gensyms std.ref std.locally std.compile_eval std.string\')});caterwaul.tconfiguration(\'std\',\'opt.unroll\',function (){this.rmacro(qs[opt.unroll[_,_][_]],fn[variable,iterations,body][with_gensyms[l,rs,es,j][qg[function (l){for (var rs=l>=0&&l>>3,es=l>=0&&l&7,_i_=0;_i_<es;++_i_)_body_;for (var j=0;j<rs;++j){_body_;_i_++;_body_;_i_++;_body_;_i_++;_body_;_i_++;_body_;_i_++;_body_;_i_++;_body_;_i_++;_body_;_i_++};return l}].call(this,_iterations_)].replace({_i_:variable,_body_:body,_iterations_:iterations})])});caterwaul.configuration(\'opt\',function (){this.configure(\'opt.unroll\')});caterwaul.configuration(\'continuation.core\',function (){this.shallow(\'continuation\',{})}).tconfiguration(\'std\',\'continuation.unwind\',function (){this.configure(\'std.fn continuation.core\').continuation/se[_.unwind_protect=function (escape,f){try {return f()}catch (e){return escape(e)}},_.unwind=function (e){throw e}];this.rmacro(qs[unwind_protect[_][_]],fn[escape,body][qse[_f(fb[e][_escape],fb_[_body])].replace({_f:new this.ref(this.continuation.unwind_protect),_escape:escape,_body:body})]).rmacro(qs[unwind[_]],fn[e][qs[_f(_e)].replace({_f:new this.ref(this.continuation.unwind),_e:e})])}).tconfiguration(\'std\',\'continuation.cps\',function (){l*[cps_convert(v,f,b,bound)=qse[l[_=_c][_f]].replace({_c:caterwaul.macroexpand(qs[_f[_v][_b]].replace({_f:bound?qs[fb]:qs[fn]})).replace({_v:v.as(\'(\')[0],_b:b}),_f:f}),l_cps_def(t,form,bound)=l[inductive(cs,v,f,b)=qs[l/cps[cs][_f]].replace({cs:cs,_f:cps_convert(v,f,b,bound)}),base(v,f,b)=cps_convert(v,f,b,bound)] in t.rmacro(qs[l/_form[_,_<-_][_]].replace({_form:form}),inductive).rmacro(caterwaul.parse(\'let/#{form.serialize()}[_, _ <- _][_]\'),inductive).rmacro(qs[l/_form[_<-_][_]].replace({_form:form}),base).rmacro(caterwaul.parse(\'let/#{form.serialize()}[   _ <- _][_]\'),base),cps_def(t,form,bound)=t.rmacro(qs[_/_form[_]].replace({_form:form}),fn[f,b][qse[_f/_form._[_b]].replace({_form:form,_f:f,_b:b})]).rmacro(qs[_/_form._[_]].replace({_form:form}),fn[f,v,b][qse[l[_=_c][_f]].replace({_c:caterwaul.macroexpand(qs[_f[_v][_b]].replace({_f:bound?qs[fb]:qs[fn]})).replace({_v:v,_b:b}),_f:f})])] in this.configure(\'std.fn continuation.core\')/se[cps_def(_,qs[cps],false),cps_def(_,qs[cpb],true),l_cps_def(_,qs[cps],false),l_cps_def(_,qs[cpb],true)]}).tconfiguration(\'std\',\'continuation.delimited\',function (){l[magic=this.configure(\'continuation.core\').continuation.magic=this.magic(\'continuation.delimited\')] in this.continuation/se[_.call_cc=function (f){var escaped=false,cc=function (x){escaped=true;throw x},frame={magic:magic,continuation:f,parameters:[cc]};try {while ((frame=frame.continuation.apply(this,frame.parameters))&&frame&&frame.magic===magic);return frame}catch (e){if (escaped)return e;else throw e}},_.call_tail()={magic:magic,continuation:this,parameters:arguments}];this.rmacro(qs[call/cc[_]],fn[f][qs[qg[_call_cc.call(this,_f)]].replace({_call_cc:new this.ref(this.continuation.call_cc),_f:f})]).rmacro(qs[call/tail[_(_)]],fn[f,args][qs[qg[_call_tail.call(_f,_args)]].replace({_call_tail:new this.ref(this.continuation.call_tail),_f:f,_args:args})])}).configuration(\'continuation\',function (){this.configure(\'continuation.core continuation.unwind continuation.cps continuation.delimited\')});caterwaul.tconfiguration(\'std\',\'seq.core\',function (){this.shallow(\'seq\',{core:fn_[null]/se[_.prototype=[]/se.p[p.constructor=_]]})}).tconfiguration(\'std\',\'seq.finite.core\',function (){l[push=Array.prototype.push,slice=Array.prototype.slice][this.configure(\'seq.core\').seq.finite=fc[xs][this.length=0,push.apply(this,slice.call(xs||[]))]/se.c[c.prototype=new this.seq.core()/se[_.size()=this.length,_.constructor=c]]]}).tconfiguration(\'std\',\'seq.finite.serialization\',function (){this.configure(\'seq.finite.core\').seq.finite.prototype.toString()=\'seq[#{Array.prototype.slice.call(this).join(", ")}]\'}).tconfiguration(\'std\',\'seq.finite.mutability\',function (){l[push=Array.prototype.push,slice=Array.prototype.slice] in this.configure(\'seq.finite.core\').seq.finite.prototype/se[_.push()=(push.apply(this,arguments),this),_.pop()=this[--this.length]/se[delete this[this.length]],_.concat(xs)=new this.constructor(this)/se[_.push.apply(_,slice.call(xs))]]}).tconfiguration(\'std\',\'seq.finite.object\',function (){l[own=Object.prototype.hasOwnProperty] in this.configure(\'seq.finite.core\').seq.finite/se[_.keys(o,all)=new _()/se[(function (){for (var k in o)if (all||own.call(o,k))_.push(k)})()],_.values(o,all)=new _()/se[(function (){for (var k in o)if (all||own.call(o,k))_.push(o[k])})()],_.pairs(o,all)=new _()/se[(function (){for (var k in o)if (all||own.call(o,k))_.push([k,o[k]])})()],_.prototype.object(o)=(o||{})/se[this.each(fn[p][_[p[0]]=p[1]])]]}).tconfiguration(\'std opt\',\'seq.finite.traversal\',function (){this.configure(\'seq.finite.core seq.finite.mutability\').seq.finite.prototype/se[_.map(f)=new this.constructor()/se[opt.unroll[i,this.length][_.push(f.call(this,this[i],i))]],_.filter(f)=new this.constructor()/se[opt.unroll[i,this.length][_.push(this[i]),when[f.call(this,this[i],i)]]],_.each(f)=this/se[opt.unroll[i,_.length][f.call(_,_[i],i)]],_.reversed()=new this.constructor()/se[l[l=this.length] in opt.unroll[i,l][_.push(this[l-i-1])]],_.flat_map(f)=new this.constructor()/se[this.each(fn[x,xi][(f.call(this,x,xi)/re.xs[xs.each?xs:new this.constructor(xs)]).each(fn[x][_.push(x)])])],_.foldl(f,x)=l[x=arguments.length>1?x:this[0],xi=2-arguments.length][opt.unroll[i,this.length-xi][x=f.call(this,x,this[i+xi],i+xi)],x,when[this.length>=xi]],_.foldr(f,x)=l[x=arguments.length>1?x:this[this.length-1],xi=3-arguments.length,l=this.length][opt.unroll[i,l-(xi-1)][x=f.call(this,this[l-(i+xi)],x,l-(i+xi))],x,when[l>=xi-1]]]}).tconfiguration(\'std opt\',\'seq.finite.zip\',function (){this.configure(\'seq.finite.traversal\').seq.finite/se[l[seq=_,slice=Array.prototype.slice][_.prototype.zip()=l[as=new seq([this].concat(slice.call(arguments))),options={f:fn_[new seq(arguments)],outer:false}][caterwaul.util.merge(options,as.pop()),when[as[as.length-1].constructor===Object],l[l=as.map(fn[x][x.length]).foldl(options.outer?fn[x,y][Math.max(x,y)]:fn[x,y][Math.min(x,y)]),f=options.f] in new this.constructor()/se[opt.unroll[i,l][_.push(f.apply({i:i},as.map(fn[x][x[i]]).slice()))]]]]]}).tconfiguration(\'std opt continuation\',\'seq.finite.quantification\',function (){this.configure(\'seq.finite.core\').seq.finite.prototype/se[_.exists(f)=call/cc[fb[cc][opt.unroll[i,this.length][f.call(this,this[i],i)&&cc(this[i]||true)],false]],_.forall(f)=!this.exists(fn_[!f.apply(this,arguments)])]}).tconfiguration(\'std\',\'seq.infinite.core\',function (){this.configure(\'seq.core\').seq.infinite=fn_[null]/se[_.prototype=new this.seq.core()/se[_.constructor=ctor],where[ctor=_]]/se[_.def(name,ctor,h,t)=i[name]=ctor/se[_.prototype=new i()/se[_.h=h,_.t=t,_.constructor=ctor]],where[i=_],_.def(\'cons\',fn[h,t][this._h=h,this._t=t],fn_[this._h],fn_[this._t]),_.def(\'k\',fn[x][this._x=x],fn_[this._x],fn_[this])]}).tconfiguration(\'std\',\'seq.infinite.y\',function (){this.configure(\'seq.infinite.core\').seq.infinite.def(\'y\',fc[f,x][this._f=f,this._x=x],fn_[this._x],fn_[new this.constructor(this._f,this._f(this._x))])}).tconfiguration(\'std continuation\',\'seq.infinite.transform\',function (){this.configure(\'seq.infinite.core\').seq.infinite/se[_.prototype.map(f)=new _.map(f,this),_.def(\'map\',fc[f,xs][this._f=f,this._xs=xs],fn_[this._f(this._xs.h())],fn_[new this.constructor(this._f,this._xs.t())]),_.prototype.filter(f)=new _.filter(f,this),_.def(\'filter\',fc[f,xs][this._f=f,this._xs=l*[next(s)(cc)=f(s.h())?cc(s):call/tail[next(s.t())(cc)]] in call/cc[next(xs)]],fn_[this._xs.h()],fn_[new this.constructor(this._f,this._xs.t())])]}).tconfiguration(\'std continuation\',\'seq.infinite.traversal\',function (){l[finite=this.configure(\'seq.finite.core seq.finite.mutability\').seq.finite] in this.configure(\'seq.infinite.core\').seq.infinite.prototype/se[_.drop(f)=l*[next(s)(cc)=f(s.h())?call/tail[next(s.t())(cc)]:cc(s)] in call/cc[next(this)],_.take(f)=l*[xs=new finite(),next(s)(cc)=l[h=s.h()][f(h)?(xs.push(h),call/tail[next(s.t())(cc)]):cc(xs)]] in call/cc[next(this)]]}).tconfiguration(\'std opt continuation\',\'seq.dsl\',function (){this.configure(\'seq.core seq.infinite.y seq.finite.core seq.finite.zip seq.finite.traversal seq.finite.mutability\').seq.dsl=caterwaul.global().clone()/se[_.prefix_substitute(tree,prefix)=tree.rmap(fn[n][new n.constructor(\'#{prefix}#{n.data.substring(1)}\'),when[n.data.charAt(0)===\'_\']]),_.define_functional(op,expansion,xs)=trees_for(op).map(fn[t,i][_.macro(t,fn[l,v,r][expansion.replace({x:_.macroexpand(l),y:i<4?qs[fn[xs][y]].replace({xs:_.prefix_substitute(xs,i&1?v.data:\'_\'),y:(i&2?_.macroexpand:fn[x][x])(r||v)}):v})])]),_.define_functional/se[_(\'%\',qs[x.filter(y)],qs[_,_i]),_(\'*\',qs[x.map(y)],qs[_,_i]),_(\'/\',qs[x.foldl(y)],qs[_,_0,_i]),_(\'%!\',qs[x.filter(c(y))].replace({c:not}),qs[_,_i]),_(\'*!\',qs[x.each(y)],qs[_,_i]),_(\'/!\',qs[x.foldr(y)],qs[_,_0,_i]),_(\'&\',qs[x.forall(y)],qs[_,_i]),_(\'|\',qs[x.exists(y)],qs[_,_i]),_(\'-\',qs[x.flat_map(y)],qs[_,_i]),_(\'>>\',qs[x.drop(y)],qs[_]),_(\'<<\',qs[x.take(y)],qs[_]),_(\'>>>\',qs[new r(y,x)].replace({r:new this.ref(this.seq.infinite.y)}),qs[_])],seq(qw(\'> < >= <= == !=\')).each(fn[op][_.macro(qs[_+_].clone()/se[_.data=op],rxy(qs[x.length+y.length].clone()/se[_.data=op]))]),l[e(x)=_.macroexpand(x)] in _.macro/se[_(qs[_&&_],rxy(qse[qg[l[xp=x][xp&&xp.length?y:xp]]])),_(qs[_||_],rxy(qse[qg[l[xp=x][xp&&xp.length?xp:y]]])),_(qs[_===_],rxy(qs[qg[l[xp=x,yp=y][xp===yp||xp.length===yp.length&&xp.zip(yp).forall(fn[p][p[0]===p[1]])]]])),_(qs[_!==_],rxy(qs[qg[l[xp=x,yp=y][xp!==yp&&(xp.length!==yp.length||xp.zip(yp).exists(fn[p][p[0]!==p[1]]))]]])),_(qs[_^_],rxy(qs[x.zip(y)])),_(qs[_+_],rxy(qs[x.concat(y)])),_(qs[!_],rxy(qs[x.object()])),_(qs[_,_],rxy(qs[x,y])),_(qs[~_],rxy(qs[new r(x)].as(\'(\').replace({r:new this.ref(this.seq.finite)}))),_(qs[_?_:_],fn[x,y,z][qs[x?y:z].replace({x:e(x),y:e(y),z:e(z)})]),l[rx(t)(x,y)=t.replace({x:e(x),y:y})][_(qs[_(_)],rx(qs[x(y)])),_(qs[_[_]],rx(qs[x[y]])),_(qs[_._],rx(qs[x.y])),_(qs[_].as(\'(\'),rx(qs[qg[x]]))],_(qs[+_],fn[x][x]),seq(qw(\'sk sv sp\')).zip(qw(\'keys values pairs\')).each(fb[p][_(qs[p[_]].replace({p:p[0]}),fb[x][qs[r(x)].replace({r:new this.ref(this.seq.finite[p[1]]),x:x})])])],this.rmacro(qs[seq[_]],_.macroexpand),where*[template(op)(t)=qs[_+x].replace({x:t})/se[_.data=op],qw=caterwaul.util.qw,not=new this.ref(fn[f][fn_[!f.apply(this,arguments)]]),trees_for(op)=op.charAt(op.length-1)===\'!\'?seq([qs[![_]],qs[!_[_]],qs[!~[_]],qs[!~_[_]],qs[!+_]]).map(template(op.substring(0,op.length-1))):seq([qs[[_]],qs[_[_]],qs[~[_]],qs[~_[_]],qs[+_]]).map(template(op)),rxy(tree)(x,y)=tree.replace({x:_.macroexpand(x),y:y&&_.macroexpand(y)}),seq=fb[xs][new this.seq.finite(xs)]]]}).configuration(\'seq\',function (){this.configure(\'seq.core seq.finite.core seq.finite.object seq.finite.mutability seq.finite.traversal seq.finite.zip seq.finite.quantification \'+\'seq.finite.serialization seq.infinite.core seq.infinite.y seq.infinite.transform seq.infinite.traversal seq.dsl\')});');
 meta::configuration('dependencies', <<'__8548df37a8c03740da742d1f650b6dd7');
 # Named dependencies:
 caterwaul.all.js: http://spencertipping.com/caterwaul/caterwaul.all.min.js
 __8548df37a8c03740da742d1f650b6dd7
-
 meta::data('current-continuation', 'figure out introspection modeling');
 meta::data('default-action', 'shell');
 meta::data('libraries', <<'__cca38bdfe6664615b581ec6dff43cf46');
@@ -303,7 +273,6 @@ meta::data('libraries', <<'__cca38bdfe6664615b581ec6dff43cf46');
 http://spencertipping.com/caterwaul/caterwaul.all.js
 http://spencertipping.com/montenegro/montenegro.server.js
 __cca38bdfe6664615b581ec6dff43cf46
-
 meta::data('license', <<'__3c6177256de0fddb721f534c3ad8c0ee');
 MIT License
 Copyright (c) 2010 Spencer Tipping
@@ -326,7 +295,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
-
 meta::data('main', 'server.js');
 meta::data('name', 'figment');
 meta::data('quiet', '1');
@@ -336,56 +304,35 @@ meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
 # Stashes a quick one-line continuation. (Used to remind me what I was doing.)
 @_ ? associate('data::current-continuation', join(' ', @_)) : retrieve('data::current-continuation');
 __5c64e1adc128113e1b409e0fbcbe29a2
-
-meta::function('child', <<'__3eeb4b4fd37a502b53f0008e7835b5de');
+meta::function('child', <<'__9b5175a0e9b94998754cad35582b987a');
 my ($child_name) = @_;
-
-# Make the child inherit from this object. The easiest way to do that is to
-# grab $0, which is presumably executable, and have the child update from it.
-hypothetically(sub {
-  associate('data::name', $child_name);
-  clone($child_name);
-});
-
+clone($child_name);
 enable();
 qx($child_name update-from $0 -nu);
 disable();
-__3eeb4b4fd37a502b53f0008e7835b5de
-
+__9b5175a0e9b94998754cad35582b987a
 meta::function('clone', <<'__5a30a4ba6293e250ed22884d609e4781');
 for (grep length, @_) {
   file::write($_, serialize(), noclobber => 1);
   chmod(0700, $_);
 }
 __5a30a4ba6293e250ed22884d609e4781
-
-meta::function('cp', <<'__d33fe9aa270eeee6dcc3ee445447a6a7');
-my ($from, $to) = @_;
-my $exists = exists $data{$from};
-associate($to, retrieve($from)) if $exists;
-die "No such attribute $from" unless $exists;
-retrieve($from);
-__d33fe9aa270eeee6dcc3ee445447a6a7
-
-meta::function('create', <<'__97e5444422f5f6087371f59ddc3e1b8c');
+meta::function('cp', <<'__e5fee448a74ecbf4ae215e6b43dfc048');
+my $from = shift @_;
+my $value = retrieve($from);
+associate($_, $value) for @_;
+__e5fee448a74ecbf4ae215e6b43dfc048
+meta::function('create', <<'__7ca9912feb8e43dc446bab9a0c79821a');
 my ($name, $value) = @_;
-
 return edit($name) if exists $data{$name};
-
-if (defined $value) {
-  associate($name, $value);
-} else {
-  associate($name, '');
-  edit($name);
-}
-__97e5444422f5f6087371f59ddc3e1b8c
-
+associate($name, defined $value ? $value : '');
+edit($name) unless defined $value;
+__7ca9912feb8e43dc446bab9a0c79821a
 meta::function('current-state', <<'__d83ae43551c0f58d1d0ce576402a315a');
 my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
-
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('dupdate', <<'__9eb9747ca6d4cdcb7d863ca9ed13f80a');
 # Update the repository based on the dependencies it lists.
@@ -394,7 +341,6 @@ rm($_) for grep /^cached_dependency::/, keys %data;
 my %dependencies = dependencies();
 associate("cached_dependency::$_", LWP::Simple::get($dependencies{$_})) for keys %dependencies;
 __9eb9747ca6d4cdcb7d863ca9ed13f80a
-
 meta::function('edit', <<'__b878c50c3d058d5a344dcb1f52b625a3');
 my ($name, %options) = @_;
 my $extension = extension_for($name);
@@ -404,86 +350,55 @@ associate($name, invoke_editor_on($data{$name} || "# Attribute $name", %options,
           execute => $name !~ /^bootstrap::/);
 save();
 __b878c50c3d058d5a344dcb1f52b625a3
-
 meta::function('enable', 'chmod_self(sub {$_[0] | $_[0] >> 2});');
-meta::function('export', <<'__6c445eea603f9863df0f8db445fd708e');
+meta::function('export', <<'__388e0cc60507443cb1c0cc3e2658cfef');
 # Exports data into a text file.
 #   export attr1 attr2 attr3 ... file.txt
-
 my $name = pop @_;
-my @attributes = @_;
-
-if (@attributes) {
-  my $file = join "\n", map cat($_), @attributes;
-  file::write($name, $file);
-} else {
-  die 'Not enough arguments';
-}
-__6c445eea603f9863df0f8db445fd708e
-
+@_ or die 'Expected filename';
+file::write($name, join "\n", retrieve(@_));
+__388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('grep', <<'__ccbc55153c3f45db829686632273b93b');
+meta::function('grep', <<'__ba0d15b75bfe3555d76b894c93d465b7');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
 
 my $pattern              = shift @_ or die 'Must specify a pattern to search for';
 my ($options, @criteria) = separate_options(@_);
 my @attributes           = select_keys(%$options, '--criteria' => join('|', @criteria));
-my $color                = $$options{'-c'};
 
-my @matching_attributes;
-my @matching_line_numbers;
-my @matching_lines;
+my @m_attributes, @m_line_numbers, @m_lines;
 
 for my $k (@attributes) {
   my @lines = split /\n/, retrieve($k);
   for (0 .. $#lines) {
     next unless $lines[$_] =~ /$pattern/;
 
-    $lines[$_] =~ s/($pattern)/\033[1;31m\1\033[0;0m/g if $color;
+    $lines[$_] =~ s/($pattern)/\033[1;31m\1\033[0;0m/g if $$options{'-c'};
 
-    push @matching_attributes,   $k;
-    push @matching_line_numbers, $_ + 1;
-    push @matching_lines,        $lines[$_];
-  }
-}
+    push @m_attributes,   $k;
+    push @m_line_numbers, $_ + 1;
+    push @m_lines,        $lines[$_]}} 
 
-if ($color) {
-  s/^/\033[1;34m/o                    for @matching_attributes;
-  s/^/\033[1;32m/o && s/$/\033[0;0m/o for @matching_line_numbers;
-}
+if ($$options{'-c'}) {
+  s/^/\033[1;34m/o for @m_attributes;
+  s/^/\033[1;32m/o && s/$/\033[0;0m/o for @m_line_numbers}
 
-table_display([@matching_attributes], [@matching_line_numbers], [@matching_lines]);
-__ccbc55153c3f45db829686632273b93b
-
-meta::function('hash', <<'__7c4145cf6e97dfb9ab04a613866751d3');
-my ($data) = @_;
-fast_hash($data);
-__7c4145cf6e97dfb9ab04a613866751d3
-
+table_display([@m_attributes], [@m_line_numbers], [@m_lines]);
+__ba0d15b75bfe3555d76b894c93d465b7
+meta::function('hash', 'fast_hash(@_);');
 meta::function('hook', <<'__edb47026faf087bf9f5edca08407e0e2');
 # Takes one or more hook files and executes them if they exist and are executable.
 sh(@_) if -x $_[0];
 __edb47026faf087bf9f5edca08407e0e2
-
-meta::function('import', <<'__84d29edfe7ad2119465fdcf7d037ed1c');
-my $name  = pop @_;
-my @files = @_;
-
-if (@files) {
-  my $files = join "", map {file::read ($_)} @files;
-  associate ($name, $files); 
-}
-else {
-  associate($name, join('', <STDIN>));
-}
-__84d29edfe7ad2119465fdcf7d037ed1c
-
+meta::function('import', <<'__ac86cbe9c9fb12fc8cef2cc88e80c01e');
+my $name = pop @_;
+associate($name, @_ ? join('', map(file::read($_), @_)) : join('', <STDIN>)); 
+__ac86cbe9c9fb12fc8cef2cc88e80c01e
 meta::function('import-bundle', <<'__4c7139ed5c9f65f38a33cf8f8a6cae27');
 eval join '', <STDIN>;
 die $@ if $@;
 __4c7139ed5c9f65f38a33cf8f8a6cae27
-
 meta::function('lib', <<'__1fdcdc3310118791c100b533f6c11070');
 # Regenerates lib/ directory
 hook('bin/before-lib');
@@ -496,25 +411,22 @@ qx|cd lib && wget -nv $_| for split /\n+/, libraries();
 hook('bin/after-lib-download');
 hook('bin/after-lib');
 __1fdcdc3310118791c100b533f6c11070
-
-meta::function('load-state', <<'__91a4f89f4f1d3894d4cb122255f9c1bc');
+meta::function('load-state', <<'__43b91921c93f3ac6eb86634237bdc19b');
 my ($state_name) = @_;
 my $state = retrieve("state::$state_name");
 
-terminal::message('state', 'Saving current state into _...');
+terminal::state('Saving current state into _...');
 &{'save-state'}('_');
 
-terminal::message('state', 'Removing attributes from %data and unexternalizing functions...');
 delete $data{$_} for grep ! /^state::/, keys %data;
 %externalized_functions = ();
 
-terminal::message('state', "Restoring state $state_name...");
-eval($state);
-terminal::message('error', $@) if $@;
+terminal::state("Restoring state $state_name...");
+meta::eval_in($state, "state::$state_name");
+terminal::error($@) if $@;
 reload();
 verify();
-__91a4f89f4f1d3894d4cb122255f9c1bc
-
+__43b91921c93f3ac6eb86634237bdc19b
 meta::function('loc', <<'__dfe41cc08b7be0baa9a396df86e9b8e2');
 # Counts SLOC, whitespace, and total LOC in the codebase.
 my @lines      = map split(/\n/, file::read($_)), dependencies(), main();
@@ -525,15 +437,14 @@ my $source     = @lines - $comments - $whitespace;
 print "(Figures below include library code)\n";
 print "$source SLOC, $whitespace whitespace lines, $comments comment lines\n";
 __dfe41cc08b7be0baa9a396df86e9b8e2
-
 meta::function('lock', 'chmod_self(sub {$_[0] & 0555});');
-meta::function('ls', <<'__ad1a9fef60ec7c9d268ede65480d96a2');
+meta::function('ls', <<'__acdc3ca5777ab9c7c430d493a7555998');
 my ($options, @criteria) = separate_options(@_);
 my ($all, $shadows, $dereference, $sizes, $flags) = @$options{qw(-a -s -d -z -l)};
 $all   ||= $dereference;
 $sizes ||= $flags;
 
-return table_display([grep ! defined $data{$externalized_functions{$_}}, sort keys %externalized_functions]) if $shadows;
+return table_display([grep ! exists $data{$externalized_functions{$_}}, sort keys %externalized_functions]) if $shadows;
 
 my $criteria    = join('|', @criteria);
 my @definitions = select_keys('--criteria' => $criteria, %$options);
@@ -548,21 +459,15 @@ my @flags       = map {my $k = $_; join '', map($flag_hashes{$_}{$k} ? $_ : '-',
 
 join "\n", map strip($_), split /\n/, table_display($all ? [@definitions] : [grep length, @externals], $dereference ? ([@externals]) : (),
                                                     $sizes ? ([@sizes]) : (), $flags ? ([@flags]) : ());
-__ad1a9fef60ec7c9d268ede65480d96a2
-
+__acdc3ca5777ab9c7c430d493a7555998
 meta::function('ls-a', 'ls(\'-ad\', @_);');
 meta::function('lss', '# Attribute function::lss');
-meta::function('mv', <<'__09f350db8406303ade06d229477d79ad');
+meta::function('mv', <<'__52e95180e3c7019116bd798e0da0fdda');
 my ($from, $to) = @_;
-my $destination_namespace = namespace($to);
-
 die "'$from' does not exist" unless exists $data{$from};
-die "The namepsace '$destination_namespace' does not exist" unless $datatypes{$destination_namespace};
-
 associate($to, retrieve($from));
 rm($from);
-__09f350db8406303ade06d229477d79ad
-
+__52e95180e3c7019116bd798e0da0fdda
 meta::function('node', <<'__bd81719917ff03ed699476a4375af21a');
 # Runs node on a collection of source files and arguments. The format is:
 # node([@source_strings], @process_args);
@@ -575,24 +480,20 @@ with_exported(@$sources, sub {
   hook('bin/after-node', $_[0], @args);
 });
 __bd81719917ff03ed699476a4375af21a
-
 meta::function('note', <<'__bcbfeac6dd2112f47296265444570a6e');
 # Creates a note with a given name, useful for jotting things down.
 create("note::$_[0]");
 __bcbfeac6dd2112f47296265444570a6e
-
 meta::function('parents', 'join "\\n", grep s/^parent:://o, sort keys %data;');
 meta::function('parse', <<'__50666d988e8596c897694fc9f0cdcce9');
 with_exported(@_, sub {
   node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::parse-json/], $_[0]);
 });
 __50666d988e8596c897694fc9f0cdcce9
-
-meta::function('perl', <<'__f2b57dd342923797e8e2287c3095803f');
+meta::function('perl', <<'__986a274c013b77fe08d29726ce3799fe');
 my $result = eval(join ' ', @_);
-$@ ? terminal::message('error', $@) : $result;
-__f2b57dd342923797e8e2287c3095803f
-
+$@ ? terminal::error($@) : $result;
+__986a274c013b77fe08d29726ce3799fe
 meta::function('preprocess', <<'__66e539d29e9afa903569efad0eb7c886');
 # Implements a simple preprocessing language.
 # Syntax follows two forms. One is the 'line form', which gives you a way to specify arguments inline
@@ -647,7 +548,6 @@ while ($old_string ne $string and $expansions++ < $limit) {
 
 $string;
 __66e539d29e9afa903569efad0eb7c886
-
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
 meta::function('repl', <<'__17de81e24ac3fb6c4a3dda5d78ed780b');
 # Runs a REPL of your source, minus the webserver.
@@ -660,12 +560,10 @@ node(dependencies(), $file);
 
 hook('bin/after-repl');
 __17de81e24ac3fb6c4a3dda5d78ed780b
-
-meta::function('rm', <<'__210e6394da779d9a7255f5d646a9e4b7');
-exists $data{$_} or terminal::message('warning', "$_ does not exist") for @_;
+meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
+exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
-__210e6394da779d9a7255f5d646a9e4b7
-
+__26d4a78ddb47259b3d8dcabe390426bd
 meta::function('run-forever', <<'__76175932a2d2692fc802856c28d0848d');
 # Runs your application indefinitely, restarting each time it fails.
 # There's a one-second delay between restarts to prevent a tight loop.
@@ -675,25 +573,12 @@ hook('bin/before-run-forever');
 &$f(@args) while sleep 0.1 && ! -f 'stop';
 hook('bin/after-run-forever');
 __76175932a2d2692fc802856c28d0848d
-
-meta::function('save', <<'__8ee504cf511b547752405dc1f80d41dc');
-if (! verify()) {
-  die "$0 has not been updated";
-} else {
-  my $serialized_data = serialize();
-  eval {file::write($0, $serialized_data)};
-  die $@ if $@;
-  terminal::message('info', "$0 saved successfully.");
-  $transient{initial} = state();
-}
-__8ee504cf511b547752405dc1f80d41dc
-
+meta::function('save', 'dangerous("Saving $0...", sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
 my ($state_name) = @_;
 associate("state::$state_name", &{'current-state'}(), execute => 1);
 __5c5b586331e25951140ced6442d9fe2b
-
 meta::function('sdoc', <<'__c57475dbefb96ab12303ab854bc71cff');
 # Applies SDoc processing to a file or attribute. Takes the file or attribute
 # name as the first argument and returns the processed text.
@@ -731,101 +616,66 @@ my ($start, $end) = split /,/o, $comment || $comments_for_extension{lc($extensio
 join '', map(is_code($_) || is_blank($_) ? ($_ =~ /^\s*c\n(.*)$/so ? $1 : $_) : comment($_, $start, $end), paragraphs retrieve($filename)),
          "\n$start $generated_string $end\n";
 __c57475dbefb96ab12303ab854bc71cff
-
-meta::function('serialize', <<'__023436ac07471e2f2cf016e2172c8d73');
+meta::function('serialize', <<'__5148e8ca46eeb3e297f76d098e496bcf');
 my ($options, @criteria) = separate_options(@_);
-my $partial              = $$options{'-p'};
-my $criteria             = join '|', @criteria;
-my @attributes           = map serialize_single($_), select_keys(%$options, '-m' => 1, '--criteria' => $criteria), select_keys(%$options, '-M' => 1, '--criteria' => $criteria);
-my @final_array          = @{$partial ? \@attributes : [retrieve('bootstrap::initialization'), @attributes, 'internal::main();', '', '__END__']};
-
+my $partial     = $$options{'-p'};
+my $criteria    = join '|', @criteria;
+my @attributes  = map serialize_single($_), select_keys(%$options, '-m' => 1, '--criteria' => $criteria), select_keys(%$options, '-M' => 1, '--criteria' => $criteria);
+my @final_array = @{$partial ? \@attributes : [retrieve('bootstrap::initialization'), @attributes, 'internal::main();', '', '__END__']};
 join "\n", @final_array;
-__023436ac07471e2f2cf016e2172c8d73
-
-meta::function('serialize_single', <<'__48005281edde632b0df2e346c094b7bd');
+__5148e8ca46eeb3e297f76d098e496bcf
+meta::function('serialize_single', <<'__ef0f63556d22816ed102d3bbe2172b28');
 # Serializes a single attribute and optimizes for content.
 
-my $name               = $_[0] || $_;
-my $contents           = $data{$name};
-my $meta_function_name = 'meta::' . namespace($name);
-my $invocation_name    = attribute($name);
-my $escaped            = $contents;
+my $name          = $_[0] || $_;
+my $contents      = $data{$name};
+my $meta_function = 'meta::' . namespace($name);
+my $invocation    = attribute($name);
+my $escaped       = $contents;
 $escaped =~ s/\\/\\\\/go;
 $escaped =~ s/'/\\'/go;
 
-return "$meta_function_name('$invocation_name', '$escaped');" unless $escaped =~ /\v/;
+return "$meta_function('$invocation', '$escaped');" unless $escaped =~ /\v/;
 
 my $delimiter = '__' . fast_hash($contents);
-return "$meta_function_name('$invocation_name', <<'$delimiter');\n$contents\n$delimiter\n";
-__48005281edde632b0df2e346c094b7bd
-
-meta::function('sh', <<'__bd4fa255ba0d6c3f42ad81089ed71254');
-# Run something on the shell.
-system(@_);
-__bd4fa255ba0d6c3f42ad81089ed71254
-
-meta::function('shell', <<'__e9e0709e6ee1dd09521c683322be79e6');
+return "$meta_function('$invocation', <<'$delimiter');\n$contents\n$delimiter";
+__ef0f63556d22816ed102d3bbe2172b28
+meta::function('sh', 'system(@_);');
+meta::function('shell', <<'__70fc8838da32da36fc376752c83b1e53');
 use Term::ReadLine;
 
 my $term = new Term::ReadLine "$0 shell";
 $term->ornaments(0);
-my $prompt = undef;
-my $set_prompt = sub {
-  $prompt = "\033[1;32m" . name() . "\033[0;0m ";
-};
-  
-my $output = $term->OUT || \*STDOUT;
+my $attribs = $term->Attribs;
+my $name = $0;
+$attribs->{completion_entry_function} = $attribs->{list_completion_function};
 
-$term->Attribs->{attempted_completion_function} = \&complete;
+$name =~ s/^.*\///o;
 
-&$set_prompt();
-while (defined ($_ = $term->readline($prompt))) {
+my $prompt = sub {"\033[1;32m$name\033[1;30m" . substr(state(), 0, 4) . "\033[0;0m "};
+while ($attribs->{completion_word} = [sort keys %data, sort keys %externalized_functions], defined($_ = $term->readline(&$prompt()))) {
   my $command_line = $_;
   my @args = grep length, split /\s+|("[^"\\]*(?:\\.)?")/o;
-  my $function_name = shift @args;
+  my $function_name = shift(@args) or next;
 
-  return if $function_name eq 'exit';
+  terminal::warning("Command not found: '$function_name' (use 'ls' to see available commands)"), next unless $externalized_functions{$function_name};
 
   s/^"(.*)"$/\1/o, s/\\\\"/"/go for @args;
-
-  if ($function_name) {
-    if ($externalized_functions{$function_name}) {
-      chomp(my $result = eval {&$function_name(@args)});
-      terminal::message('error', translate_backtrace($@)) if $@;
-      print $output $result, "\n" unless $@;
-    } else {
-      terminal::message('warning', "Command not found: '$function_name' (use 'ls' to see available commands)");
-    }
-  }
-
-  if (watching()) {
-    for (grep /^watch::/, sort keys %data) {
-      my $watch = retrieve($_);
-      terminal::message('watch', "$_ => " . meta::eval_in($watch, $_));
-    }
-  }
-
-  &$set_prompt();
-}
-__e9e0709e6ee1dd09521c683322be79e6
-
+  print dangerous('', sub {&$function_name(@args)}), "\n"}
+__70fc8838da32da36fc376752c83b1e53
 meta::function('size', 'length(serialize());');
-meta::function('snapshot', <<'__787158a5844d36cbfd29e5b74c9167e1');
+meta::function('snapshot', <<'__c5d8a624c3eecc183f39b33c9b72f0db');
 my ($name) = @_;
 file::write(my $finalname = temporary_name($name), serialize(), noclobber => 1);
 chmod 0700, $finalname;
-
-terminal::message('state', "Created snapshot at $finalname.");
-__787158a5844d36cbfd29e5b74c9167e1
-
-meta::function('state', <<'__e17520e3a5d81d788ae995fd8ac47cb9');
+$finalname;
+__c5d8a624c3eecc183f39b33c9b72f0db
+meta::function('state', <<'__119111f84c3e32a5536838ac84bc6f10');
 my @keys = sort keys %data;
-my $hash = fast_hash(scalar @keys);
-$hash = fast_hash($hash . join '|', @keys);
+my $hash = fast_hash(fast_hash(scalar @keys) . join '|', @keys);
 $hash = fast_hash("$data{$_}|$hash") for @keys;
 $hash;
-__e17520e3a5d81d788ae995fd8ac47cb9
-
+__119111f84c3e32a5536838ac84bc6f10
 meta::function('test', <<'__ea30e1e2f7cb5bb44277a6bd47508dba');
 # Runs your program on each unit test and keeps track of the return codes.
 # If arguments are specified, tests starting with those patterns are run.
@@ -852,113 +702,73 @@ terminal::message('error', "$failures test(s) failed") if $failures;
 hook('bin/after-test');
 $failures;
 __ea30e1e2f7cb5bb44277a6bd47508dba
-
 meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
 meta::function('update', '&{\'update-from\'}(@_, grep s/^parent:://o, sort keys %data);');
-meta::function('update-from', <<'__d0de3a29902618c0457d2e76a1828d9b');
+meta::function('update-from', <<'__2449ea3791f880ad9359729094736b03');
 # Upgrade all attributes that aren't customized. Customization is defined when the data type is created,
 # and we determine it here by checking for $transients{inherit}{$type}.
-#
+
 # Note that this assumes you trust the remote script. If you don't, then you shouldn't update from it.
 
 my ($options, @targets) = separate_options(@_);
 
-my %options = %$options;
-@targets or die 'Must specify at least one target to update from';
-
-my $save_state = ! ($options{'-n'} || $options{'--no-save'});
-my $no_parents =    $options{'-P'} || $options{'--no-parent'} || $options{'--no-parents'};
-my $force      =    $options{'-f'} || $options{'--force'};
+@targets or return;
+my $save_state = ! ($$options{'-n'} || $$options{'--no-save'});
+my $no_parents =    $$options{'-P'} || $$options{'--no-parent'} || $$options{'--no-parents'};
+my $force      =    $$options{'-f'} || $$options{'--force'};
 
 &{'save-state'}('before-update') if $save_state;
-terminal::message('warning', 'Not saving state, as requested; to save it, omit the -n option.') unless $save_state;
 
 for my $target (@targets) {
-  terminal::message('info', "Updating from $target");
+  dangerous("Updating from $target", sub {
+    my $attributes = join '', qx($target ls -aiu);
+    terminal::warning("Skipping unreachable object $target"), next unless $attributes;
 
-  my $attributes = join '', qx($target ls -aiu);
-  terminal::message('warning', "Skipping unreachable object $target") unless $attributes;
-
-  if ($attributes) {
     rm(split /\n/, retrieve("parent::$target")) if $data{"parent::$target"};
     associate("parent::$target", $attributes) unless $no_parents;
 
-    terminal::message('info', 'Updating meta attributes...');
-    eval qx($target serialize -ipmu);
-    terminal::message('warning', $@) if $@;
-
-    terminal::message('info', 'Updating non-meta attributes...');
-    eval qx($target serialize -ipMu);
-    terminal::message('warning', $@) if $@;
+    dangerous('Updating meta attributes...',     sub {eval qx($target serialize -ipmu)});
+    dangerous('Updating non-meta attributes...', sub {eval qx($target serialize -ipMu)});
     reload();
 
-    if (verify()) {
-      terminal::message('info', "Successfully updated from $_[0]. Run 'load-state before-update' to undo this change.") if $save_state;
-    } elsif ($force) {
-      terminal::message('warning', 'The object failed verification, but the failure state has been kept because --force was specified.');
-      terminal::message('warning', 'At this point your object will not save properly, though backup copies will be created.');
-      terminal::message('info',    'Run "load-state before-update" to undo the update and return to a working state.') if $save_state;
-    } else {
-      terminal::message('error',   'Verification failed after the upgrade was complete.');
-      terminal::message('info',    "$0 has been reverted to its pre-upgrade state.") if $save_state;
-      terminal::message('info',    "If you want to upgrade and keep the failure state, then run 'update-from $target --force'.") if $save_state;
-      return &{'load-state'}('before-update') if $save_state;
-    }
-  }
-}
-__d0de3a29902618c0457d2e76a1828d9b
+    if (verify()) {terminal::info("Successfully updated from $_[0]. Run 'load-state before-update' to undo this change.") if $save_state}
+    elsif ($force) {terminal::warning('Failed to verify: at this point your object will not save properly, though backup copies will be created.',
+                                      'Run "load-state before-update" to undo the update and return to a working state.') if $save_state}
+    else {terminal::error('Verification failed after the upgrade was complete.');
+          terminal::info("$0 has been reverted to its pre-upgrade state.", "If you want to upgrade and keep the failure state, then run 'update-from $target --force'.") if $save_state;
+          return &{'load-state'}('before-update') if $save_state}})}
+__2449ea3791f880ad9359729094736b03
+meta::function('usage', '"Usage: $0 action [arguments]\\nUnique actions (run \'$0 ls\' to see all actions):" . ls(\'-u\');');
+meta::function('verify', <<'__123f83b5cb5c2400ae0b5c8af1c7bf20');
+file::write(my $other = $transient{temporary_filename} = temporary_name(), my $serialized_data = serialize());
+chomp(my $observed = join '', qx|perl '$other' state|);
 
-meta::function('usage', <<'__0d4df7beb12cee031e689cb7db19e5aa');
-<<"EOD" . ls('-u');
-Usage: $0 action [arguments]
-Defined actions (unique to this script; run '$0 ls' to see all actions):
-EOD
-__0d4df7beb12cee031e689cb7db19e5aa
-
-meta::function('verify', <<'__e8ff828f42cdc7d759b70bb81721ddb6');
-my $serialized_data = serialize();
-my $state           = state();
-
-my $temporary_filename = temporary_name();
-$transient{temporary_filename} = $temporary_filename;
-file::write($temporary_filename, $serialized_data);
-chmod 0700, $temporary_filename;
-
-chomp(my $observed_state = join '', qx|perl '$temporary_filename' state|);
-
-my $result = $observed_state eq $state;
-unlink $temporary_filename if $result;
-terminal::message('error', "Verification failed; '$observed_state' (produced by $temporary_filename) != '$state' (expected)") unless $result;
-
+unlink $other if my $result = $observed eq (my $state = state());
+terminal::error("Verification failed; expected $state but got $observed from $other") unless $result;
 $result;
-__e8ff828f42cdc7d759b70bb81721ddb6
-
+__123f83b5cb5c2400ae0b5c8af1c7bf20
 meta::function('vim', <<'__bd231af998c353790253bc6660be0b90');
 # Installs VIM highlighters.
 file::write("$ENV{'HOME'}/.vim/syntax/$_.vim", retrieve("vim_highlighter::$_")) for grep s/^vim_highlighter:://o, keys %data;
 __bd231af998c353790253bc6660be0b90
-
-meta::internal_function('associate', <<'__80f0728190bf3b0d4c94807cfdc12a22');
+meta::internal_function('associate', <<'__fc4f785bcf3ffe3225a73a1fdd314703');
 my ($name, $value, %options) = @_;
-my $namespace = namespace($name);
-die "Namespace $namespace does not exist" unless $datatypes{$namespace};
+die "Namespace does not exist" unless exists $datatypes{namespace($name)};
 $data{$name} = $value;
 execute($name) if $options{'execute'};
-__80f0728190bf3b0d4c94807cfdc12a22
-
+$value;
+__fc4f785bcf3ffe3225a73a1fdd314703
 meta::internal_function('attribute', <<'__62efb9f22157835940af1d5feae98d98');
 my ($name) = @_;
 $name =~ s/^[^:]*:://;
 $name;
 __62efb9f22157835940af1d5feae98d98
-
 meta::internal_function('chmod_self', <<'__b13487447c65f2dc790bd6b21dde89dd');
 my ($mode_function)      = @_;
 my (undef, undef, $mode) = stat $0;
 chmod &$mode_function($mode), $0;
 __b13487447c65f2dc790bd6b21dde89dd
-
 meta::internal_function('complete', <<'__f14ae2337c0653b6bb6fd02bb6493646');
 my @functions  = sort keys %externalized_functions;
 my @attributes = sort keys %data;
@@ -993,25 +803,29 @@ if ($line =~ / /) {
   match ($text, @functions);
 }
 __f14ae2337c0653b6bb6fd02bb6493646
-
+meta::internal_function('dangerous', <<'__167c759b4f9e54a667222dd3d405200d');
+# Wraps a computation that may produce an error.
+my ($message, $computation) = @_;
+terminal::info($message) if $message;
+my $result = eval {&$computation()};
+terminal::warning(translate_backtrace($@)), return undef if $@;
+$result;
+__167c759b4f9e54a667222dd3d405200d
 meta::internal_function('debug_trace', <<'__f887289259890731458a66398b628cdc');
 quiet() or terminal::message('debug', join ', ', @_);
 wantarray ? @_ : $_[0];
 __f887289259890731458a66398b628cdc
-
 meta::internal_function('dep', <<'__bad9b934374b176318ed2295b63130bc');
 # A variadic function to prepend cached_dependency:: onto things.
 # Used like this: dep(qw/caterwaul.all.js montenegro.server.js/)
 map "cached_dependency::$_", @_;
 __bad9b934374b176318ed2295b63130bc
-
 meta::internal_function('execute', <<'__4b4efc33bc6767a7aade7f427eedf83f');
 my ($name, %options) = @_;
 my $namespace = namespace($name);
 eval {&{"meta::$namespace"}(attribute($name), retrieve($name))};
 warn $@ if $@ && $options{'carp'};
 __4b4efc33bc6767a7aade7f427eedf83f
-
 meta::internal_function('exported', <<'__27414e8f2ceeaef3555b9726e690eb0f');
 # Allocates a temporary file containing the concatenation of attributes you specify,
 # and returns the filename. The filename will be safe for deletion anytime.
@@ -1019,13 +833,11 @@ my $filename = temporary_name();
 file::write($filename, cat(@_));
 $filename;
 __27414e8f2ceeaef3555b9726e690eb0f
-
 meta::internal_function('extension_for', <<'__65e48f50f20bc04aa561720b03bf494c');
 my $extension = $transient{extension}{namespace($_[0])};
 $extension = &$extension($_[0]) if ref $extension eq 'CODE';
 $extension || '';
 __65e48f50f20bc04aa561720b03bf494c
-
 meta::internal_function('fast_hash', <<'__ac70f469e697725cfb87629833434ab1');
 my ($data)     = @_;
 my $piece_size = length($data) >> 3;
@@ -1040,7 +852,6 @@ $hashes[0]  ^= $hashes[8];
 
 sprintf '%08x' x 4, @hashes[0 .. 3];
 __ac70f469e697725cfb87629833434ab1
-
 meta::internal_function('file::read', <<'__186bbcef8f6f0dd8b72ba0fdeb1de040');
 my $name = shift;
 open my($handle), "<", $name;
@@ -1048,7 +859,6 @@ my $result = join "", <$handle>;
 close $handle;
 $result;
 __186bbcef8f6f0dd8b72ba0fdeb1de040
-
 meta::internal_function('file::write', <<'__eb7b1efebe0db73378b0cce46681788d');
 use File::Path     'mkpath';
 use File::Basename 'dirname';
@@ -1061,7 +871,6 @@ open my($handle), $options{append} ? '>>' : '>', $name or die "Can't open $name 
 print $handle $contents;
 close $handle;
 __eb7b1efebe0db73378b0cce46681788d
-
 meta::internal_function('fnv_hash', <<'__8d001a3a7988631bab21a41cee559758');
 # A rough approximation to the Fowler-No Voll hash. It's been 32-bit vectorized
 # for efficiency, which may compromise its effectiveness for short strings.
@@ -1075,7 +884,6 @@ my $modulus                  = 2 ** 32;
 $hash = ($hash ^ ($_ & 0xffff) ^ ($_ >> 16)) * $fnv_prime % $modulus for unpack 'L*', $data . substr($data, -4) x 8;
 $hash;
 __8d001a3a7988631bab21a41cee559758
-
 meta::internal_function('hypothetically', <<'__33ee2e1595d3877bd1d9accaa72305c8');
 # Applies a temporary state and returns a serialized representation.
 # The original state is restored after this, regardless of whether the
@@ -1089,14 +897,10 @@ my $return_value  = eval {&$side_effect()};
 die $@ if $@;
 $return_value;
 __33ee2e1595d3877bd1d9accaa72305c8
-
-meta::internal_function('internal::main', <<'__52a583d41ccf5cb52118a6d96038cc76');
+meta::internal_function('internal::main', <<'__1a920241209715887fe3003d819586fe');
 disable();
 
-$SIG{'INT'} = sub {
-  snapshot();
-  exit 1;
-};
+$SIG{'INT'} = sub {snapshot(); exit 1};
 
 $transient{initial}      = state();
 chomp(my $default_action = retrieve('data::default-action'));
@@ -1112,17 +916,12 @@ save() unless state() eq $transient{initial};
 END {
   enable();
 }
-__52a583d41ccf5cb52118a6d96038cc76
-
-meta::internal_function('invoke_editor_on', <<'__7c798760d79429e5b52d9fa934e889d8');
+__1a920241209715887fe3003d819586fe
+meta::internal_function('invoke_editor_on', <<'__32c8b1e3c90bd40d504703e22b26e1f5');
 my ($data, %options) = @_;
-my $editor           = $options{editor} || $ENV{VISUAL} || $ENV{EDITOR} ||
-                       die 'Either the $VISUAL or $EDITOR environment variable should be set to a valid editor';
-my $options          = $options{options} || $ENV{VISUAL_OPTS} || $ENV{EDITOR_OPTS} || '';
-my $extension        = $options{extension} || '';
-my $attribute        = $options{attribute} || '';
-
-my $filename         = temporary_name() . "-$attribute" . $extension;
+my $editor   = $options{editor} || $ENV{VISUAL} || $ENV{EDITOR} || die 'Either the $VISUAL or $EDITOR environment variable should be set to a valid editor';
+my $options  = $options{options} || $ENV{VISUAL_OPTS} || $ENV{EDITOR_OPTS} || '';
+my $filename = temporary_name() . "-$options{attribute}$options{extension}";
 
 file::write($filename, $data);
 system("$editor $options '$filename'");
@@ -1130,19 +929,16 @@ system("$editor $options '$filename'");
 my $result = file::read($filename);
 unlink $filename;
 $result;
-__7c798760d79429e5b52d9fa934e889d8
-
+__32c8b1e3c90bd40d504703e22b26e1f5
 meta::internal_function('namespace', <<'__93213d60cafb9627e0736b48cd1f0760');
 my ($name) = @_;
 $name =~ s/::.*$//;
 $name;
 __93213d60cafb9627e0736b48cd1f0760
-
 meta::internal_function('retrieve', <<'__0b6f4342009684fdfa259f45ac75ae37');
 my @results = map defined $data{$_} ? $data{$_} : retrieve_with_hooks($_), @_;
 wantarray ? @results : $results[0];
 __0b6f4342009684fdfa259f45ac75ae37
-
 meta::internal_function('retrieve_with_hooks', <<'__5186a0343624789d08d1cc2084550f3d');
 # Uses the hooks defined in $transient{retrievers}, and returns undef if none work.
 my ($attribute) = @_;
@@ -1151,21 +947,15 @@ my $result      = undef;
 defined($result = &$_($attribute)) and return $result for map $transient{retrievers}{$_}, sort keys %{$transient{retrievers}};
 return undef;
 __5186a0343624789d08d1cc2084550f3d
-
-meta::internal_function('select_keys', <<'__9f1f6ed4c1df5aa5f62cfd0ded8e6ae6');
+meta::internal_function('select_keys', <<'__8ee1d5fa37927c66d9eec4d0d8269493');
 my %options   = @_;
 my %inherited = map {$_ => 1} split /\n/o, join "\n", retrieve(grep /^parent::/o, sort keys %data) if $options{'-u'} or $options{'-U'};
 my $criteria  = $options{'--criteria'} || $options{'--namespace'} && "^$options{'--namespace'}::" || '.';
 
-grep /$criteria/ && (! $options{'-u'} || ! $inherited{$_}) &&
-                    (! $options{'-U'} ||   $inherited{$_}) &&
-                    (! $options{'-i'} ||   $transient{inherit}{namespace($_)}) &&
-                    (! $options{'-I'} || ! $transient{inherit}{namespace($_)}) &&
-                    (! $options{'-S'} || ! /^state::/o) &&
-                    (! $options{'-m'} ||   /^meta::/o) &&
-                    (! $options{'-M'} || ! /^meta::/o), sort keys %data;
-__9f1f6ed4c1df5aa5f62cfd0ded8e6ae6
-
+grep /$criteria/ && (! $options{'-u'} || ! $inherited{$_}) && (! $options{'-U'} || $inherited{$_}) &&
+                    (! $options{'-I'} || ! $transient{inherit}{namespace($_)}) && (! $options{'-i'} || $transient{inherit}{namespace($_)}) &&
+                    (! $options{'-S'} || ! /^state::/o) && (! $options{'-M'} || ! /^meta::/o) && (! $options{'-m'} || /^meta::/o), sort keys %data;
+__8ee1d5fa37927c66d9eec4d0d8269493
 meta::internal_function('separate_options', <<'__d47e8ee23fe55e27bb523c9fcb2f5ca1');
 # Things with one dash are short-form options, two dashes are long-form.
 # Characters after short-form are combined; so -auv4 becomes -a -u -v -4.
@@ -1191,7 +981,6 @@ my %options;
 
 ({%options}, @others, @_);
 __d47e8ee23fe55e27bb523c9fcb2f5ca1
-
 meta::internal_function('strip', 'wantarray ? map {s/^\\s*|\\s*$//g; $_} @_ : $_[0] =~ /^\\s*(.*?)\\s*$/ && $1;');
 meta::internal_function('table_display', <<'__8a6897e093f36bf05477a3889b84a61d');
 # Displays an array of arrays as a table; that is, with alignment. Arrays are
@@ -1210,19 +999,16 @@ my $format    = join '  ', map "%-${_}s", @lengths;
 
 join "\n", map strip(sprintf($format, @$_)), @row_major;
 __8a6897e093f36bf05477a3889b84a61d
-
 meta::internal_function('temporary_name', <<'__0fb1402061581b69822f913631b4a9d9');
 use File::Temp 'tempfile';
 my (undef, $temporary_filename) = tempfile("$0." . 'X' x 4, OPEN => 0);
 $temporary_filename;
 __0fb1402061581b69822f913631b4a9d9
-
 meta::internal_function('translate_backtrace', <<'__06fad3d85833a6484e426401b95e0206');
 my ($trace) = @_;
 $trace =~ s/\(eval (\d+)\)/$locations{$1 - 1}/g;
 $trace;
 __06fad3d85833a6484e426401b95e0206
-
 meta::internal_function('with_exported', <<'__fc4f32c46d95c6deed0414364d1c7410');
 # Like exported(), but removes the file after running some function.
 # Usage is with_exported(@files, sub {...});
@@ -1233,7 +1019,6 @@ terminal::warning("$@ when running with_exported()") if $@;
 unlink $name;
 $result;
 __fc4f32c46d95c6deed0414364d1c7410
-
 meta::js('jsparse', <<'__146ae7cd35ae2ba8f17428820c6fa755');
 // Copyright (C) 2007 Chris Double.
 //
@@ -1885,37 +1670,26 @@ not = exports.not = function(p) {
     }
 }
 __146ae7cd35ae2ba8f17428820c6fa755
-
-meta::library('terminal', <<'__6999988eaf441c9b1282e03e1db427b5');
+meta::library('terminal', <<'__09b73279f3343e34f69b3b10e4515981');
 # Functions for nice-looking terminal output.
 package terminal;
 
-my %color_conversions = (black  => "0;0", red  => "1;31", yellow => "1;33", green => "1;32",
-                                          blue => "1;34", purple => "1;35", cyan  => "1;36");
-my $longest_prefix = 0;
-my %default_colors = ();
+my $longest = 0;
 
+sub message {print STDERR "[$_[0]] $_[1]\n"}
 sub color {
-  $default_colors{$_[0]} = $_[1];
-  $longest_prefix = $longest_prefix < length($_[0]) ? length($_[0]) : $longest_prefix;
+  my ($name, $color) = @_;
+  $longest = length $name if length $name > $longest;
+
+  *{"terminal::$name"} = sub {
+    my $padding = ' ' x ($longest - length $name);
+    print STDERR "$padding\[\033[1;${color}m$name\033[0;0m] $_\n" for @_;
+  };
 }
 
-color    'info',  'green';
-color  'status',  'green';
-color   'error',    'red';
-color   'debug',   'blue';
-color 'warning', 'yellow';
-
-sub message {
-  my ($prefix, $message) = @_;
-  my $color = $color_conversions{$default_colors{$prefix}};
-  my $padding = ' ' x ($longest_prefix - length $prefix);
-
-  return if ::quiet() and $default_colors{$prefix} eq 'green';
-  print STDERR "${padding}\[\033[${color}m$prefix\033[0;0m] $message\n";
-}
-__6999988eaf441c9b1282e03e1db427b5
-
+my %preloaded = (info => 32, state => 34, debug => 34, warning => 33, error => 31);
+color $_, $preloaded{$_} for keys %preloaded;
+__09b73279f3343e34f69b3b10e4515981
 meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
@@ -1930,7 +1704,6 @@ Parsing works in a fairly straightforward way, but it does have some quirks. Amo
   3. Paragraphs are assumed to be side-effectful and self-contained. However, paragraph breaks don't happen inside expressions; for example, opening a paren and then creating a paragraph break
      has no effect because the paren group is the active parse state. (This can be undesirable; it requires the host semantics to allow file-specific context.)
 __0252e9ccc128d793d2b6566a30203cb8
-
 meta::parent('./sdoc', <<'__8df50cce1d08f0b862b86ca0ff865c32');
 function::lss
 function::sdoc
@@ -1938,12 +1711,10 @@ meta::type::sdoc
 parent::/home/spencertipping/bin/object
 retriever::sdoc
 __8df50cce1d08f0b862b86ca0ff865c32
-
 meta::parent('/home/spencertipping/bin/configuration', <<'__511208c99d8bc2caa3067db9f1824163');
 meta::type::configuration
 parent::/home/spencertipping/bin/object
 __511208c99d8bc2caa3067db9f1824163
-
 meta::parent('/home/spencertipping/bin/node-base', <<'__1278e29bc8f531363f6290f3fafa9cbc');
 function::hook
 function::lib
@@ -1958,8 +1729,7 @@ meta::type::js
 parent::/home/spencertipping/bin/repository
 parent::/home/spencertipping/conjectures/perl-objects/sdoc
 __1278e29bc8f531363f6290f3fafa9cbc
-
-meta::parent('/home/spencertipping/bin/object', <<'__b1308b5b9c4a7001a50498e0844fa748');
+meta::parent('/home/spencertipping/bin/object', <<'__b48487cb555ed29687eadbe87fdad930');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -1977,7 +1747,6 @@ function::extern
 function::grep
 function::hash
 function::import
-function::import-bundle
 function::load-state
 function::lock
 function::ls
@@ -2004,7 +1773,7 @@ function::verify
 internal_function::associate
 internal_function::attribute
 internal_function::chmod_self
-internal_function::complete
+internal_function::dangerous
 internal_function::debug_trace
 internal_function::execute
 internal_function::exported
@@ -2029,7 +1798,6 @@ internal_function::with_exported
 library::terminal
 message_color::state
 message_color::states
-message_color::watch
 meta::configure
 meta::externalize
 meta::functor::editable
@@ -2044,17 +1812,18 @@ meta::type::meta
 meta::type::parent
 meta::type::retriever
 meta::type::state
-meta::type::watch
 retriever::file
 retriever::id
-__b1308b5b9c4a7001a50498e0844fa748
-
-meta::parent('/home/spencertipping/bin/repository', <<'__f88c2b0e5725507b3fdb5719fd65e6d3');
+__b48487cb555ed29687eadbe87fdad930
+meta::parent('/home/spencertipping/bin/repository', <<'__088dab82112d5c0a3ef67a44662052b3');
 function::dupdate
+function::import-bundle
+internal_function::complete
+message_color::watch
 meta::type::cached_dependency
+meta::type::watch
 parent::/home/spencertipping/bin/configuration
-__f88c2b0e5725507b3fdb5719fd65e6d3
-
+__088dab82112d5c0a3ef67a44662052b3
 meta::parent('/home/spencertipping/conjectures/perl-objects/sdoc', <<'__8df50cce1d08f0b862b86ca0ff865c32');
 function::lss
 function::sdoc
@@ -2062,12 +1831,10 @@ meta::type::sdoc
 parent::/home/spencertipping/bin/object
 retriever::sdoc
 __8df50cce1d08f0b862b86ca0ff865c32
-
 meta::parent('configuration', <<'__511208c99d8bc2caa3067db9f1824163');
 meta::type::configuration
 parent::/home/spencertipping/bin/object
 __511208c99d8bc2caa3067db9f1824163
-
 meta::parent('development', <<'__96e7494250faedeba358d4a378450014');
 parent::./sdoc
 parent::configuration
@@ -2075,14 +1842,12 @@ parent::notes
 parent::preprocessor
 parent::vim-highlighters
 __96e7494250faedeba358d4a378450014
-
 meta::parent('notes', <<'__320d51928ec8e2e370d67d30abe059b5');
 function::note
 meta::type::note
 parent::object
 __320d51928ec8e2e370d67d30abe059b5
-
-meta::parent('object', <<'__b1308b5b9c4a7001a50498e0844fa748');
+meta::parent('object', <<'__b48487cb555ed29687eadbe87fdad930');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -2100,7 +1865,6 @@ function::extern
 function::grep
 function::hash
 function::import
-function::import-bundle
 function::load-state
 function::lock
 function::ls
@@ -2127,7 +1891,7 @@ function::verify
 internal_function::associate
 internal_function::attribute
 internal_function::chmod_self
-internal_function::complete
+internal_function::dangerous
 internal_function::debug_trace
 internal_function::execute
 internal_function::exported
@@ -2152,7 +1916,6 @@ internal_function::with_exported
 library::terminal
 message_color::state
 message_color::states
-message_color::watch
 meta::configure
 meta::externalize
 meta::functor::editable
@@ -2167,11 +1930,9 @@ meta::type::meta
 meta::type::parent
 meta::type::retriever
 meta::type::state
-meta::type::watch
 retriever::file
 retriever::id
-__b1308b5b9c4a7001a50498e0844fa748
-
+__b48487cb555ed29687eadbe87fdad930
 meta::parent('preprocessor', <<'__9c447d98a6cfad0ea5444db7eb4b75de');
 function::preprocess
 meta::type::template
@@ -2181,13 +1942,11 @@ template::eval
 template::failing_conditional
 template::include
 __9c447d98a6cfad0ea5444db7eb4b75de
-
 meta::parent('vim-highlighters', <<'__1258d5867978f2068c8efd130c2066f7');
 function::vim
 meta::type::vim_highlighter
 parent::object
 __1258d5867978f2068c8efd130c2066f7
-
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
@@ -2248,7 +2007,6 @@ parse_figment = caterwaul.clone('std continuation seq')(function () {
 
     paragraph    = s0(choice(lparagraph, cparagraph), pbreak)]})();
 __b321e31480bf72adc3909b77db70c2d8
-
 meta::sdoc('js::figment-parser-tests', <<'__b2b3dea79e6d16a85f2da25d0fce7d64');
 Unit tests for Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -2310,7 +2068,6 @@ caterwaul.clone('std continuation seq')(function () {
     eq(x, y)   = JSON.stringify(x) === JSON.stringify(y),
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
 __b2b3dea79e6d16a85f2da25d0fce7d64
-
 meta::sdoc('js::parse-json', <<'__d3d72ad290f81c11e38f4a93baf12f49');
 Figment parser runtime | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -2318,27 +2075,23 @@ Licensed under the terms of the MIT source code license
 caterwaul.clone('std continuation seq')(function (require) {
   seq[~process.argv.slice(2) *[require('fs').readFileSync(_, 'utf8')] *[parse_figment(_)] *![process.stdout.write(JSON.stringify(_) + '\n')]]})(require);
 __d3d72ad290f81c11e38f4a93baf12f49
-
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__7be1d470a07a06c58e971bc7fc24c048');
 my $result = eval $_[0];
 terminal::message('warning', "Error during template evaluation: $@") if $@;
 $result;
 __7be1d470a07a06c58e971bc7fc24c048
-
 meta::template('failing_conditional', <<'__b49f2ffe1cfefb36b1eabd7abd7b3bb6');
 my ($commands)    = @_;
 my $should_return = $commands =~ / if (.*)$/ && ! eval $1;
 terminal::message('warning', "eval of template condition failed: $@") if $@;
 $should_return;
 __b49f2ffe1cfefb36b1eabd7abd7b3bb6
-
 meta::template('include', <<'__e0624844a65ae41e0217dd871fc0dbfb');
 my ($commands) = @_;
 return '' if template::failing_conditional($commands);
 join "\n", map retrieve($_), split /\s+/, $commands;
 __e0624844a65ae41e0217dd871fc0dbfb
-
 meta::vim_highlighter('figment', <<'__4da8e33d88087f77a3c184e60c6dfe63');
 " Vim syntax file
 " Language:   Figment
@@ -2441,7 +2194,6 @@ syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
 
 let b:current_syntax = "figment"
 __4da8e33d88087f77a3c184e60c6dfe63
-
 internal::main();
 
 __END__
