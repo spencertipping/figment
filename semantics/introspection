@@ -2123,7 +2123,7 @@ caterwaul.clone('std continuation seq')(function () {
     eq(x, y)   = JSON.stringify(x) === JSON.stringify(y),
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
 __b2b3dea79e6d16a85f2da25d0fce7d64
-meta::sdoc('js::javascript-visitor', <<'__38ff901c26103b20f887cb0e095dc535');
+meta::sdoc('js::javascript-visitor', <<'__6beb4830fef7eb06507647010bc2dcc2');
 Javascript visitor interpretation context | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2154,8 +2154,8 @@ javascript_visitor = caterwaul.clone('std continuation seq')(function (tree) {
   tree = parse_figment(tree), when[tree.constructor === String];
 
   return seq[~tree %![_[0] === 'literate'] *+transform],
-  where*[primitive_operators  = seq[~caterwaul.util.qw('+ - / * % ^ & | ! ~ && || < > <= >= == != !== === << >> >>> += -= *= /= %= ^= &= |= <<= >>= >>>= : . [] ()') *[[_[0], true]]].object(),
-         not_to_wrap          = seq[~caterwaul.util.qw('. [] () :') *[[_[0], true]]].object(),
+  where*[primitive_operators  = seq[!(~caterwaul.util.qw('+ - / * % ^ & | ! ~ && || < > <= >= == != !== === << >> >>> += -= *= /= %= ^= &= |= <<= >>= >>>= : . , ; [] ()') *[[_[0], true]])],
+         not_to_wrap          = seq[~caterwaul.util.qw('. [] () : , ;') *[[_[0], true]]].object(),
 
          promote(x)           = x.constructor === String ? new caterwaul.syntax(x) : x,
          is_basic_operator(x) = primitive_operators.hasOwnProperty(x),
@@ -2169,7 +2169,7 @@ javascript_visitor = caterwaul.clone('std continuation seq')(function (tree) {
            n.length === 2 &&         is_string(n[0]) ? n[1].length > 1 ? seq[~n[1] *[_ instanceof Array ? transform(_[1]).as('(') : JSON.stringify(_)] /[qs[_x + _y].replace({_x: _, _y: _0})]] :
                                                                          JSON.stringify(n[1][0]) :
                                              atom(n) ? n.toString() : qs[unknown])]});
-__38ff901c26103b20f887cb0e095dc535
+__6beb4830fef7eb06507647010bc2dcc2
 meta::sdoc('js::parse-json', <<'__5e03a75129a678ef12c01282698685e5');
 Figment parser runtime | Spencer Tipping
 Licensed under the terms of the MIT source code license
