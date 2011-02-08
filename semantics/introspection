@@ -340,7 +340,7 @@ rm($_) for grep /^cached_dependency::/, keys %data;
 my %dependencies = dependencies();
 associate("cached_dependency::$_", LWP::Simple::get($dependencies{$_})) for keys %dependencies;
 __9eb9747ca6d4cdcb7d863ca9ed13f80a
-meta::function('edit', <<'__b878c50c3d058d5a344dcb1f52b625a3');
+meta::function('edit', <<'__c74a5d1c0dbd922acaf1397f89190fce');
 my ($name, %options) = @_;
 my $extension = extension_for($name);
 
@@ -348,7 +348,8 @@ die "Attribute $name does not exist." unless exists $data{$name};
 associate($name, invoke_editor_on($data{$name} || "# Attribute $name", %options, attribute => $name, extension => $extension),
           execute => $name !~ /^bootstrap::/);
 save();
-__b878c50c3d058d5a344dcb1f52b625a3
+'';
+__c74a5d1c0dbd922acaf1397f89190fce
 meta::function('enable', 'chmod_self(sub {$_[0] | $_[0] >> 2});');
 meta::function('export', <<'__388e0cc60507443cb1c0cc3e2658cfef');
 # Exports data into a text file.
@@ -468,6 +469,11 @@ die "'$from' does not exist" unless exists $data{$from};
 associate($to, retrieve($from));
 rm($from);
 __52e95180e3c7019116bd798e0da0fdda
+meta::function('name', <<'__6848cbc257e4b6d7441b25acb04e23c9');
+my $name = $0;
+$name =~ s/^.*\///;
+$name;
+__6848cbc257e4b6d7441b25acb04e23c9
 meta::function('node', <<'__4ca639731eed217d5396d1f36c9d5aec');
 # Runs node on a collection of source files and arguments. The format is:
 # node([@source_strings], @process_args);
@@ -573,7 +579,7 @@ hook('bin/before-run-forever');
 &$f(@args) while sleep 0.1 && ! -f 'stop';
 hook('bin/after-run-forever');
 __76175932a2d2692fc802856c28d0848d
-meta::function('save', 'dangerous("saving $0", sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
+meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
 my ($state_name) = @_;
@@ -641,16 +647,14 @@ my $delimiter = '__' . fast_hash($contents);
 return "$meta_function('$invocation', <<'$delimiter');\n$contents\n$delimiter";
 __ef0f63556d22816ed102d3bbe2172b28
 meta::function('sh', 'system(@_);');
-meta::function('shell', <<'__c3952c1482cd39dfc045ed9efecd6214');
+meta::function('shell', <<'__44f4c89b3f25a47a44ef85f16c960743');
 use Term::ReadLine;
 
 my $term = new Term::ReadLine "$0 shell";
 $term->ornaments(0);
 my $attribs = $term->Attribs;
-my $name = $0;
+my $name = name();
 $attribs->{completion_entry_function} = $attribs->{list_completion_function};
-
-$name =~ s/^.*\///o;
 
 my $prompt = sub {
   my $state = state();
@@ -666,7 +670,7 @@ while ($attribs->{completion_word} = [sort keys %data, sort keys %externalized_f
 
   s/^"(.*)"$/\1/o, s/\\\\"/"/go for @args;
   print dangerous('', sub {&$function_name(@args)}), "\n"}
-__c3952c1482cd39dfc045ed9efecd6214
+__44f4c89b3f25a47a44ef85f16c960743
 meta::function('size', 'length(serialize());');
 meta::function('snapshot', <<'__c5d8a624c3eecc183f39b33c9b72f0db');
 my ($name) = @_;
@@ -1680,13 +1684,11 @@ not = exports.not = function(p) {
     }
 }
 __146ae7cd35ae2ba8f17428820c6fa755
-meta::library('terminal', <<'__31f88c81d989b9f3463951aadcd66930');
+meta::library('terminal', <<'__0ec2ca45ce7b9b56c05c9b284a7ee78a');
 # Functions for nice-looking terminal output.
 package terminal;
 
-my $process = $0;
-
-$process =~ s/^.*\///;
+my $process = ::name();
 
 sub message {print STDERR "[$_[0]] $_[1]\n"}
 sub color {
@@ -1695,7 +1697,7 @@ sub color {
 
 my %preloaded = (info => 32, progress => 32, state => 34, debug => 34, warning => 33, error => 31);
 color $_, $preloaded{$_} for keys %preloaded;
-__31f88c81d989b9f3463951aadcd66930
+__0ec2ca45ce7b9b56c05c9b284a7ee78a
 meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
@@ -1776,7 +1778,7 @@ meta::type::js
 parent::/home/spencertipping/bin/repository
 parent::/home/spencertipping/conjectures/perl-objects/sdoc
 __1278e29bc8f531363f6290f3fafa9cbc
-meta::parent('/home/spencertipping/bin/object', <<'__8a434dcd2367919d9059dc0fa66f6c80');
+meta::parent('/home/spencertipping/bin/object', <<'__59e6a6d404efe9edcd702da0f4895df2');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -1800,6 +1802,7 @@ function::lock
 function::ls
 function::ls-a
 function::mv
+function::name
 function::parents
 function::perl
 function::reload
@@ -1863,7 +1866,7 @@ meta::type::retriever
 meta::type::state
 retriever::file
 retriever::id
-__8a434dcd2367919d9059dc0fa66f6c80
+__59e6a6d404efe9edcd702da0f4895df2
 meta::parent('/home/spencertipping/bin/repository', <<'__088dab82112d5c0a3ef67a44662052b3');
 function::dupdate
 function::import-bundle
@@ -1896,7 +1899,7 @@ function::note
 meta::type::note
 parent::object
 __320d51928ec8e2e370d67d30abe059b5
-meta::parent('object', <<'__8a434dcd2367919d9059dc0fa66f6c80');
+meta::parent('object', <<'__59e6a6d404efe9edcd702da0f4895df2');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -1920,6 +1923,7 @@ function::lock
 function::ls
 function::ls-a
 function::mv
+function::name
 function::parents
 function::perl
 function::reload
@@ -1983,7 +1987,7 @@ meta::type::retriever
 meta::type::state
 retriever::file
 retriever::id
-__8a434dcd2367919d9059dc0fa66f6c80
+__59e6a6d404efe9edcd702da0f4895df2
 meta::parent('preprocessor', <<'__9c447d98a6cfad0ea5444db7eb4b75de');
 function::preprocess
 meta::type::template
@@ -2119,7 +2123,7 @@ caterwaul.clone('std continuation seq')(function () {
     eq(x, y)   = JSON.stringify(x) === JSON.stringify(y),
     test(x, y) = eq(parse_figment(x), y) || null['#{x} parsed into #{JSON.stringify(parse_figment(x))} instead of #{JSON.stringify(y)}']]})();
 __b2b3dea79e6d16a85f2da25d0fce7d64
-meta::sdoc('js::javascript-visitor', <<'__0a46bbea5d8c67fcafd71c537f07ecb6');
+meta::sdoc('js::javascript-visitor', <<'__38ff901c26103b20f887cb0e095dc535');
 Javascript visitor interpretation context | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2153,15 +2157,19 @@ javascript_visitor = caterwaul.clone('std continuation seq')(function (tree) {
   where*[primitive_operators  = seq[~caterwaul.util.qw('+ - / * % ^ & | ! ~ && || < > <= >= == != !== === << >> >>> += -= *= /= %= ^= &= |= <<= >>= >>>= : . [] ()') *[[_[0], true]]].object(),
          not_to_wrap          = seq[~caterwaul.util.qw('. [] () :') *[[_[0], true]]].object(),
 
+         promote(x)           = x.constructor === String ? new caterwaul.syntax(x) : x,
          is_basic_operator(x) = primitive_operators.hasOwnProperty(x),
+         is_string(x)         = x === '\'' || x === '"',
          wrap(x, op)          = not_to_wrap.hasOwnProperty(op) ? x : x.as('('),
          atom(x)              = x.constructor === String || x.constructor === Number,
 
-         transform(n)         = n.length === 3 && is_basic_operator(n[0]) ? qs[_x + _y].replace({_x: transform(n[1]), _y: transform(n[2])}) /se[_.data = n[0]] /re[wrap(_, n[0])] :
-                                n.length === 2 && is_basic_operator(n[0]) ? qs[+_x].    replace({_x: transform(n[1])})                      /se[_.data = n[0]] /re[wrap(_, n[0])] :
-                                                                  atom(n) ? n.toString() :
-                                                                            qs[unknown]]});
-__0a46bbea5d8c67fcafd71c537f07ecb6
+         transform(n)         = promote(
+           n.length === 3 && is_basic_operator(n[0]) ? qs[_x + _y].replace({_x: transform(n[1]), _y: transform(n[2])}) /se[_.data = n[0]] /re[wrap(_, n[0])] :
+           n.length === 2 && is_basic_operator(n[0]) ? qs[+_x].    replace({_x: transform(n[1])})                      /se[_.data = n[0]] /re[wrap(_, n[0])] :
+           n.length === 2 &&         is_string(n[0]) ? n[1].length > 1 ? seq[~n[1] *[_ instanceof Array ? transform(_[1]).as('(') : JSON.stringify(_)] /[qs[_x + _y].replace({_x: _, _y: _0})]] :
+                                                                         JSON.stringify(n[1][0]) :
+                                             atom(n) ? n.toString() : qs[unknown])]});
+__38ff901c26103b20f887cb0e095dc535
 meta::sdoc('js::parse-json', <<'__5e03a75129a678ef12c01282698685e5');
 Figment parser runtime | Spencer Tipping
 Licensed under the terms of the MIT source code license
