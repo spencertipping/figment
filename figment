@@ -1957,7 +1957,7 @@ __1258d5867978f2068c8efd130c2066f7
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
-meta::sdoc('js::figment-parser', <<'__4ef4182b60e7edfc15ec45dc3492ae7b');
+meta::sdoc('js::figment-parser', <<'__2ab0df3d6246e6067673143091ee2c37');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1980,7 +1980,7 @@ parse_figment = caterwaul.clone('std continuation seq')(function () {
     forward[expression],
 
     lcomment     = s3(ws0, oneof('-/'), ws0, js(range('A', 'Z'), jr0(negate(eol))), choice(eol, end_p)),
-    operator     = s1(repeat0(sequence(lcomment, ws0)), choice(js(jr1(oneof('`~!@#$%^&*-+=\\|:<>./?')), jr0(oneof('\''))), js('_', ident(jr1), ws0))),
+    operator     = s1(repeat0(sequence(lcomment, ws0)), choice(js(jr1(oneof('`~!@#$%^&*-+=\\|:<>./?')), jr0(oneof('\''))), s0(js('_', ident(jr1)), ws0))),
 
     number       = l*[digit = oneof('0123456789')] in action(js(jr1(digit), optional(js('.', jr1(digit), optional(js(oneof('eE'), optional(oneof('+-')), jr1(digit)))))), Number),
 
@@ -2013,7 +2013,7 @@ parse_figment = caterwaul.clone('std continuation seq')(function () {
     lparagraph   = action(js(ws0, choice(range('A', 'Z'), '|'), jr0(negate(pbreak))), fn[x][['literate', x]]),
 
     paragraph    = s0(choice(lparagraph, cparagraph), pbreak)]})();
-__4ef4182b60e7edfc15ec45dc3492ae7b
+__2ab0df3d6246e6067673143091ee2c37
 meta::sdoc('js::figment-parser-tests', <<'__b2b3dea79e6d16a85f2da25d0fce7d64');
 Unit tests for Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
