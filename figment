@@ -472,18 +472,17 @@ my $name = $0;
 $name =~ s/^.*\///;
 $name;
 __6848cbc257e4b6d7441b25acb04e23c9
-meta::function('node', <<'__4ca639731eed217d5396d1f36c9d5aec');
+meta::function('node', <<'__0dbdfd4cc670051c20430f7ff167ccab');
 # Runs node on a collection of source files and arguments. The format is:
 # node([@source_strings], @process_args);
 my ($sources, @args) = @_;
 
 with_exported(@$sources, sub {
-  terminal::debug("starting application using $_[0]");
   hook('bin/before-node', $_[0], @args);
   sh('node', $_[0], @args);
   hook('bin/after-node', $_[0], @args);
 });
-__4ca639731eed217d5396d1f36c9d5aec
+__0dbdfd4cc670051c20430f7ff167ccab
 meta::function('note', <<'__bcbfeac6dd2112f47296265444570a6e');
 # Creates a note with a given name, useful for jotting things down.
 create("note::$_[0]");
@@ -553,6 +552,7 @@ while ($old_string ne $string and $expansions++ < $limit) {
 $string;
 __66e539d29e9afa903569efad0eb7c886
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
+meta::function('render', 'file::write(attribute($_) . \'.js\', retrieve($_), mkpath => 1) for grep s/^sdoc::js::/js::/ || /^js::/, keys %data;');
 meta::function('repl', <<'__17de81e24ac3fb6c4a3dda5d78ed780b');
 # Runs a REPL of your source, minus the webserver.
 generate();
@@ -583,7 +583,7 @@ meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 my ($state_name) = @_;
 associate("state::$state_name", &{'current-state'}(), execute => 1);
 __5c5b586331e25951140ced6442d9fe2b
-meta::function('sdoc', <<'__c57475dbefb96ab12303ab854bc71cff');
+meta::function('sdoc', <<'__060cfa349e629eb90a82b87a8ba00c1d');
 # Applies SDoc processing to a file or attribute. Takes the file or attribute
 # name as the first argument and returns the processed text.
 
@@ -615,11 +615,17 @@ my ($extension)       = $filename =~ /\.sdoc$/io ? $filename =~ /\.(\w+)\.sdoc$/
 my ($other_extension) = extension_for(attribute($filename));
 $other_extension =~ s/^\.//o;
 
-my ($start, $end) = split /,/o, $comment || $comments_for_extension{lc($extension || $other_extension)};
+my ($start, $end) = split /,/o, $comments_for_extension{lc($other_extension || $extension)};
 
 join '', map(is_code($_) || is_blank($_) ? ($_ =~ /^\s*c\n(.*)$/so ? $1 : $_) : comment($_, $start, $end), paragraphs retrieve($filename)),
          "\n$start $generated_string $end\n";
-__c57475dbefb96ab12303ab854bc71cff
+__060cfa349e629eb90a82b87a8ba00c1d
+meta::function('sdocp', <<'__8b7ed5bbd537234ae53c0691b6d02c97');
+# Renders an attribute as SDocP. This logic was taken directly from the sdoc script.
+my $attribute = retrieve($_[0]);
+sub escape {my @results = map {s/\\/\\\\/go; s/\n/\\n/go; s/'/\\'/go; $_} @_; wantarray ? @results : $results[0]}
+"sdocp('" . escape($_[0]) . "', '" . escape($attribute) . "');";
+__8b7ed5bbd537234ae53c0691b6d02c97
 meta::function('serialize', <<'__5148e8ca46eeb3e297f76d098e496bcf');
 my ($options, @criteria) = separate_options(@_);
 my $partial     = $$options{'-p'};
@@ -645,7 +651,7 @@ my $delimiter = '__' . fast_hash($contents);
 return "$meta_function('$invocation', <<'$delimiter');\n$contents\n$delimiter";
 __ef0f63556d22816ed102d3bbe2172b28
 meta::function('sh', 'system(@_);');
-meta::function('shell', <<'__44f4c89b3f25a47a44ef85f16c960743');
+meta::function('shell', <<'__d7af156228ebbf921ab2ae7f5432c4b8');
 use Term::ReadLine;
 
 my $term = new Term::ReadLine "$0 shell";
@@ -655,9 +661,10 @@ my $name = name();
 $attribs->{completion_entry_function} = $attribs->{list_completion_function};
 
 my $prompt = sub {
-  my $state = state();
-  my $other = $state ne $transient{initial} ? 33 : 30;
-  "\033[1;32m$name\033[1;${other}m" . substr($state, 0, 4) . "\033[0;0m "};
+  my $state  = state();
+  my $other  = $state ne $transient{initial} ? 33 : 30;
+  my $locked = is_locked() ? "\033[1;31mlocked\033[0;0m" : '';
+  "\033[1;32m$name\033[1;${other}m" . substr($state, 0, 4) . "\033[0;0m$locked "};
 
 while ($attribs->{completion_word} = [sort keys %data, sort keys %externalized_functions], defined($_ = $term->readline(&$prompt()))) {
   my $command_line = $_;
@@ -668,7 +675,7 @@ while ($attribs->{completion_word} = [sort keys %data, sort keys %externalized_f
 
   s/^"(.*)"$/\1/o, s/\\\\"/"/go for @args;
   print dangerous('', sub {&$function_name(@args)}), "\n"}
-__44f4c89b3f25a47a44ef85f16c960743
+__d7af156228ebbf921ab2ae7f5432c4b8
 meta::function('size', 'length(serialize());');
 meta::function('snapshot', <<'__c5d8a624c3eecc183f39b33c9b72f0db');
 my ($name) = @_;
@@ -682,32 +689,6 @@ my $hash = fast_hash(fast_hash(scalar @keys) . join '|', @keys);
 $hash = fast_hash("$data{$_}|$hash") for @keys;
 $hash;
 __119111f84c3e32a5536838ac84bc6f10
-meta::function('test', <<'__833c801b45242c312fa30253bd988ef2');
-# Runs your program on each unit test and keeps track of the return codes.
-# If arguments are specified, tests starting with those patterns are run.
-generate();
-hook('bin/before-test');
-
-my @log;
-my $failures = 0;
-
-my @tests = @_ ? map <test/$_*.js>, @_ : <test/*.js>;
-
-for (@tests) {
-  hook('bin/before-test-case', $_);
-  terminal::error('test', "starting test $_");
-  my $status = node(dependencies(), $_);
-  push @log, "fail $_" and hook('bin/test-failure', $_) if $status != 0;
-  push @log, "pass $_" and hook('bin/test-success', $_) if $status == 0;
-  $failures += ! ! $status;
-  hook('bin/after-test-case', $_);
-}
-
-file::write('.test-log', join "\n", @log);
-terminal::error("$failures test(s) failed") if $failures;
-hook('bin/after-test');
-$failures;
-__833c801b45242c312fa30253bd988ef2
 meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('touch', 'associate($_, \'\') for @_;');
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
@@ -924,11 +905,13 @@ END {
   enable();
 }
 __b7379923a1c7d2481bad4247b8a71974
-meta::internal_function('invoke_editor_on', <<'__32c8b1e3c90bd40d504703e22b26e1f5');
+meta::internal_function('invoke_editor_on', <<'__1448132d5294a4b8390b4a684d8a78f9');
 my ($data, %options) = @_;
-my $editor   = $options{editor} || $ENV{VISUAL} || $ENV{EDITOR} || die 'Either the $VISUAL or $EDITOR environment variable should be set to a valid editor';
-my $options  = $options{options} || $ENV{VISUAL_OPTS} || $ENV{EDITOR_OPTS} || '';
-my $filename = temporary_name() . "-$options{attribute}$options{extension}";
+my $editor    = $options{editor} || $ENV{VISUAL} || $ENV{EDITOR} || die 'Either the $VISUAL or $EDITOR environment variable should be set to a valid editor';
+my $options   = $options{options} || $ENV{VISUAL_OPTS} || $ENV{EDITOR_OPTS} || '';
+my $attribute = $options{attribute};
+$attribute =~ s/\//-/g;
+my $filename  = temporary_name() . "-$attribute$options{extension}";
 
 file::write($filename, $data);
 system("$editor $options '$filename'");
@@ -936,7 +919,8 @@ system("$editor $options '$filename'");
 my $result = file::read($filename);
 unlink $filename;
 $result;
-__32c8b1e3c90bd40d504703e22b26e1f5
+__1448132d5294a4b8390b4a684d8a78f9
+meta::internal_function('is_locked', '!((stat($0))[2] & 0222);');
 meta::internal_function('namespace', <<'__93213d60cafb9627e0736b48cd1f0760');
 my ($name) = @_;
 $name =~ s/::.*$//;
@@ -1705,32 +1689,56 @@ Parsing works in a fairly straightforward way, but it does have some quirks. Amo
   3. Paragraphs are assumed to be side-effectful and self-contained. However, paragraph breaks don't happen inside expressions; for example, opening a paren and then creating a paragraph break
      has no effect because the paren group is the active parse state. (This can be undesirable; it requires the host semantics to allow file-specific context.)
 __0252e9ccc128d793d2b6566a30203cb8
-meta::parent('./sdoc', <<'__8df50cce1d08f0b862b86ca0ff865c32');
+meta::note('q', <<'__1506e7ce47f07f339e9869afbd9c7162');
+Figment programming language.
+This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
+convert text into syntax trees.
+
+Todo.
+
+| 1. Write a figment -> JSON parser. [done]
+  2. Create some skeletal semantics and write a JSON -> JSON interpreter (the goal being to macroexpand code). [in progress]
+  3. Write a figment-JSON -> Javascript converter (with some sane semantics).
+
+Thoughts about aesthetics.
+Aesthetics shouldn't be written off completely. It's important to not only allow but encourage repetition at some points. For example:
+
+| #foo {...}
+  #foo .bar {...}
+  #foo .bar.bif {...}
+  #foo .bif {...}
+  #foo .bif.baz {...}
+
+This kind of repetition visually reinforces what's going on. Depending on the application it may be appropriate (though the user should always have a way to eliminate it).
+__1506e7ce47f07f339e9869afbd9c7162
+meta::parent('./sdoc', <<'__2d47795f5a2f946e1655dcc68b32aadd');
 function::lss
 function::sdoc
+function::sdocp
 meta::type::sdoc
 parent::/home/spencertipping/bin/object
 retriever::sdoc
-__8df50cce1d08f0b862b86ca0ff865c32
+retriever::sdocp
+__2d47795f5a2f946e1655dcc68b32aadd
 meta::parent('/home/spencertipping/bin/configuration', <<'__511208c99d8bc2caa3067db9f1824163');
 meta::type::configuration
 parent::/home/spencertipping/bin/object
 __511208c99d8bc2caa3067db9f1824163
-meta::parent('/home/spencertipping/bin/node-base', <<'__1278e29bc8f531363f6290f3fafa9cbc');
+meta::parent('/home/spencertipping/bin/node-base', <<'__401dd64e9d57266c5a33895c0f214301');
 function::hook
 function::lib
 function::loc
 function::node
+function::render
 function::repl
 function::run-forever
-function::test
 internal_function::dep
 message_color::test
 meta::type::js
 parent::/home/spencertipping/bin/repository
 parent::/home/spencertipping/conjectures/perl-objects/sdoc
-__1278e29bc8f531363f6290f3fafa9cbc
-meta::parent('/home/spencertipping/bin/object', <<'__59e6a6d404efe9edcd702da0f4895df2');
+__401dd64e9d57266c5a33895c0f214301
+meta::parent('/home/spencertipping/bin/object', <<'__24f211bef7e65af28726dfe6075c671f');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -1789,6 +1797,7 @@ internal_function::fnv_hash
 internal_function::hypothetically
 internal_function::internal::main
 internal_function::invoke_editor_on
+internal_function::is_locked
 internal_function::namespace
 internal_function::retrieve
 internal_function::retrieve_with_hooks
@@ -1818,7 +1827,7 @@ meta::type::retriever
 meta::type::state
 retriever::file
 retriever::id
-__59e6a6d404efe9edcd702da0f4895df2
+__24f211bef7e65af28726dfe6075c671f
 meta::parent('/home/spencertipping/bin/repository', <<'__088dab82112d5c0a3ef67a44662052b3');
 function::dupdate
 function::import-bundle
@@ -1828,13 +1837,15 @@ meta::type::cached_dependency
 meta::type::watch
 parent::/home/spencertipping/bin/configuration
 __088dab82112d5c0a3ef67a44662052b3
-meta::parent('/home/spencertipping/conjectures/perl-objects/sdoc', <<'__8df50cce1d08f0b862b86ca0ff865c32');
+meta::parent('/home/spencertipping/conjectures/perl-objects/sdoc', <<'__2d47795f5a2f946e1655dcc68b32aadd');
 function::lss
 function::sdoc
+function::sdocp
 meta::type::sdoc
 parent::/home/spencertipping/bin/object
 retriever::sdoc
-__8df50cce1d08f0b862b86ca0ff865c32
+retriever::sdocp
+__2d47795f5a2f946e1655dcc68b32aadd
 meta::parent('configuration', <<'__511208c99d8bc2caa3067db9f1824163');
 meta::type::configuration
 parent::/home/spencertipping/bin/object
@@ -1851,7 +1862,7 @@ function::note
 meta::type::note
 parent::object
 __320d51928ec8e2e370d67d30abe059b5
-meta::parent('object', <<'__59e6a6d404efe9edcd702da0f4895df2');
+meta::parent('object', <<'__24f211bef7e65af28726dfe6075c671f');
 bootstrap::initialization
 bootstrap::perldoc
 function::cat
@@ -1910,6 +1921,7 @@ internal_function::fnv_hash
 internal_function::hypothetically
 internal_function::internal::main
 internal_function::invoke_editor_on
+internal_function::is_locked
 internal_function::namespace
 internal_function::retrieve
 internal_function::retrieve_with_hooks
@@ -1939,7 +1951,7 @@ meta::type::retriever
 meta::type::state
 retriever::file
 retriever::id
-__59e6a6d404efe9edcd702da0f4895df2
+__24f211bef7e65af28726dfe6075c671f
 meta::parent('preprocessor', <<'__9c447d98a6cfad0ea5444db7eb4b75de');
 function::preprocess
 meta::type::template
@@ -1957,6 +1969,10 @@ __1258d5867978f2068c8efd130c2066f7
 meta::retriever('file', '-f $_[0] ? file::read($_[0]) : undef;');
 meta::retriever('id', '$_[0] =~ /^id::/ ? substr($_[0], 4) : undef;');
 meta::retriever('sdoc', 'exists $data{"sdoc::$_[0]"} ? sdoc("sdoc::$_[0]") : undef;');
+meta::retriever('sdocp', <<'__2fe74510364ec3ea28fefc4f66b864b3');
+my $attribute = attribute($_[0]);
+exists $data{"sdoc::$_[0]"} ? sdocp("sdoc::$_[0]") : undef;
+__2fe74510364ec3ea28fefc4f66b864b3
 meta::sdoc('js::figment-parser', <<'__2ab0df3d6246e6067673143091ee2c37');
 Bootstrap Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
