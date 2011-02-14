@@ -1,4 +1,0 @@
-A directory up I said Figment has no semantics. That's patently absurd, of
-course -- a programming language without semantics is useless. So in the upper
-directory Figment doesn't have semantics and is useless. In here, however, are
-some scripts that assign semantics to Figment constructs.
