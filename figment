@@ -1326,7 +1326,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__9e18b43ccdf147d1c1d3636a850d0622');
+meta::sdoc('js::figment', <<'__61a6e670cdf147d1c1d3636afcb539ee');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1404,7 +1404,7 @@ value of f to have the original definition automatically forward to the new one 
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]],
-                              number_options  = peg[c(/\d+/, 1) / c(/\d+\.\d*([eE][-+]?\d*)?/, 2) >> fn[xs][xs[0]]],
+                              number_options  = peg[c(/\d+\.\d*([eE][-+]?\d*)?/, 2) / c(/\d+/, 1) >> fn[xs][xs[0]]],
                               string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][xs[0][0] + xs[1]]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 
@@ -1423,8 +1423,8 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__9e18b43ccdf147d1c1d3636a850d0622
-meta::sdoc('js::test/basic', <<'__8e94fefaaf18a55806b3b39da41b22db');
+__61a6e670cdf147d1c1d3636afcb539ee
+meta::sdoc('js::test/basic', <<'__5de4d3e1143e9b5041ae3be8f8b2e353');
 Basic tests for the lexer/parser.
 
 caterwaul.clone('std figment')(function () {
@@ -1436,11 +1436,42 @@ caterwaul.clone('std figment')(function () {
   eq('(_foo_)', qse[qg[_foo_]]),
   eq('[_foo_]', qse[[_foo_]]),
 
+  eq('foo?', qs[foo] /se[_.data = 'foo?']),
+  eq('foo?!', qs[foo] /se[_.data = 'foo?!']),
+  eq('foo?!\'', qs[foo] /se[_.data = 'foo?!\'']),
+  eq('foo\'\'', qs[foo] /se[_.data = 'foo\'\'']),
+  eq('foo\'\'"bar"', qs[_x + "bar"] /se[_[0] = qs[foo] /se[_.data = 'foo\'\''], _.data = 'tjoin']),
+
   eq('foo+bar', qs[foo + bar]),
   eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
   eq('foo+bar - bif', qs[foo + bar - bif]),
   eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'ljoin']),
   eq('"foo"bar', qs["foo" + bar] /se[_.data = 'tjoin']),
+
+  // Some of these numerical tests will fail on SpiderMonkey-based platforms:
+  eq('3', qs[3]),
+  eq('3.1', qs[3.1]),
+  eq('3.1e+4', qs[3.1e+4]),
+  eq('3.1e-4', qs[3.1e-4]),
+  eq('3.1e4', qs[3.1e4]),
+  eq('3.1E+4', qs[3.1E+4]),
+  eq('3.1E-4', qs[3.1E-4]),
+  eq('3.1E4', qs[3.1E4]),
+
+  eq('0', qs[0]),
+  eq('0.0', qs[0.0]),
+  eq('0.0e+0', qs[0.0e+0]),
+  eq('0.0e-0', qs[0.0e-0]),
+  eq('0.0e0', qs[0.0e0]),
+  eq('0.0E+0', qs[0.0E+0]),
+  eq('0.0E-0', qs[0.0E-0]),
+  eq('0.0E0', qs[0.0E0]),
+
+  eq('foo,bar', qs[foo,bar]),
+  eq('foo+bif,bar', qs[foo + bif, bar]),
+  eq('foo + bif,bar', qs[foo + bif, bar]),
+  eq('foo, bar+bif', qs[foo, bar + bif]),
+  eq('foo, bar + bif', qs[foo, bar + bif]),
 
   eq('+bif', qs[+bif] /se[_.data = '+']),
   eq('-%%!$`bif', qs[+bif] /se[_.data = '-%%!$`']),
@@ -1456,7 +1487,7 @@ caterwaul.clone('std figment')(function () {
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(caterwaul.figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).toString(), t.toString())]})();
-__8e94fefaaf18a55806b3b39da41b22db
+__5de4d3e1143e9b5041ae3be8f8b2e353
 meta::sdoc('js::test/comments', <<'__89d0d390fde258c76a8bd4c24a398958');
 Tests for line and block comments (lexer tests).
 
