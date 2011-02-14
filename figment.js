@@ -56,7 +56,14 @@
 
   caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
     this.figment = this.global().clone().field('decompile', parse).field('parse', parse),
-    where*[parse(s)      = expression(lex(s).join('\n')),
+    where*[parse(s)      = expression(lex(s)),
+
+           lex           = l*[literate     = peg[c(/[A-Z\|](?:[^\n]+\n?)*/, 1) >> fn_['']],
+                              paragraph    = peg[c(/([^\n]+\n?)*/, 1) >> fn[xs][xs[0]]],
+                              paragraphs   = peg[([c(/\n\n+/, 2)] % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][xs.join('')]],
+                              line_comment = peg[c(/^[-\/]\s*$/, 1) % c(/[A-Z][^\n]*\n/, 1) >> fn_['']],
+                              code         = peg[(line_comment / c(/[^-\/]+/, 1))[0] >> fn[xs][xs.join('')]]] in
+                           fn[s][code(paragraphs(s))],
 
            // Forward definition of expression
            expression(x) = expression(x),

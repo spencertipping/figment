@@ -691,6 +691,7 @@ my $hash = fast_hash(fast_hash(scalar @keys) . join '|', @keys);
 $hash = fast_hash("$data{$_}|$hash") for @keys;
 $hash;
 __119111f84c3e32a5536838ac84bc6f10
+meta::function('test', 'node([\'cached_dependency::caterwaul.all.js\', \'js::figment\', grep s/sdoc:://, select_keys(\'--criteria\' => \'sdoc::js::.*test/.*\')], @_);');
 meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
 meta::function('touch', 'associate($_, \'\') for @_;');
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
@@ -1324,7 +1325,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__c29cedcf3a40f35d0461afdfd78819fe');
+meta::sdoc('js::figment', <<'__f93d4373f959304c6b3ec6d05678b76a');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1383,7 +1384,14 @@ value of f to have the original definition automatically forward to the new one 
 
   caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
     this.figment = this.global().clone().field('decompile', parse).field('parse', parse),
-    where*[parse(s)      = expression(lex(s).join('\n')),
+    where*[parse(s)      = expression(lex(s)),
+
+           lex           = l*[literate     = peg[c(/[A-Z\|](?:[^\n]+\n?)*/, 1) >> fn_['']],
+                              paragraph    = peg[c(/([^\n]+\n?)*/, 1) >> fn[xs][xs[0]]],
+                              paragraphs   = peg[([c(/\n\n+/, 2)] % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][xs.join('')]],
+                              line_comment = peg[c(/^[-\/]\s*$/, 1) % c(/[A-Z][^\n]*\n/, 1) >> fn_['']],
+                              code         = peg[(line_comment / c(/[^-\/]+/, 1))[0] >> fn[xs][xs.join('')]]] in
+                           fn[s][code(paragraphs(s))],
 
            // Forward definition of expression
            expression(x) = expression(x),
@@ -1413,7 +1421,14 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__c29cedcf3a40f35d0461afdfd78819fe
+__f93d4373f959304c6b3ec6d05678b76a
+meta::sdoc('js::test/basic', <<'__19d42617cc6c61abfa29207015a6e946');
+Basic tests for the lexer/parser.
+
+caterwaul.clone('std figment')(function () {
+  eq('foo', qs[foo]),
+  where*[eq(s, t) = l[sp = caterwaul.figment.parse(s).serialize(), tp = t.serialize()][s === t || null['#{s} should have been equal to #{t}']]]})();
+__19d42617cc6c61abfa29207015a6e946
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
