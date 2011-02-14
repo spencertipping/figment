@@ -327,6 +327,7 @@ return edit($name) if exists $data{$name};
 associate($name, defined $value ? $value : '');
 edit($name) unless defined $value;
 __7ca9912feb8e43dc446bab9a0c79821a
+meta::function('ct', 'create("sdoc::js::test/$_[0]");');
 meta::function('current-state', <<'__d83ae43551c0f58d1d0ce576402a315a');
 my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
@@ -340,6 +341,7 @@ rm($_) for grep /^cached_dependency::/, keys %data;
 my %dependencies = dependencies();
 associate("cached_dependency::$_", LWP::Simple::get($dependencies{$_})) for keys %dependencies;
 __9eb9747ca6d4cdcb7d863ca9ed13f80a
+meta::function('e', 'edit(\'sdoc::js::figment\')');
 meta::function('edit', <<'__c74a5d1c0dbd922acaf1397f89190fce');
 my ($name, %options) = @_;
 my $extension = extension_for($name);
@@ -693,33 +695,13 @@ my $hash = fast_hash(fast_hash(scalar @keys) . join '|', @keys);
 $hash = fast_hash("$data{$_}|$hash") for @keys;
 $hash;
 __119111f84c3e32a5536838ac84bc6f10
-meta::function('test', <<'__833c801b45242c312fa30253bd988ef2');
-# Runs your program on each unit test and keeps track of the return codes.
-# If arguments are specified, tests starting with those patterns are run.
-generate();
-hook('bin/before-test');
-
-my @log;
-my $failures = 0;
-
-my @tests = @_ ? map <test/$_*.js>, @_ : <test/*.js>;
-
-for (@tests) {
-  hook('bin/before-test-case', $_);
-  terminal::error('test', "starting test $_");
-  my $status = node(dependencies(), $_);
-  push @log, "fail $_" and hook('bin/test-failure', $_) if $status != 0;
-  push @log, "pass $_" and hook('bin/test-success', $_) if $status == 0;
-  $failures += ! ! $status;
-  hook('bin/after-test-case', $_);
-}
-
-file::write('.test-log', join "\n", @log);
-terminal::error("$failures test(s) failed") if $failures;
-hook('bin/after-test');
-$failures;
-__833c801b45242c312fa30253bd988ef2
+meta::function('t', <<'__25c1d93bc6ad99f47f1918885c31a24d');
+my @attributes = select_keys('--criteria' => "sdoc::js::.*test/.*$_[0]");
+edit($attributes[0]);
+__25c1d93bc6ad99f47f1918885c31a24d
+meta::function('test', 'node([\'cached_dependency::caterwaul.all.js\', \'js::figment\', grep s/sdoc:://, select_keys(\'--criteria\' => \'sdoc::js::.*test/.*\')], @_);');
 meta::function('test-parse', 'node([qw/cached_dependency::caterwaul.all.js js::jsparse js::figment-parser js::figment-parser-tests/]);');
+meta::function('testl', 'node([\'/home/spencertipping/conjectures/caterwaul/caterwaul.all.js\', \'js::figment\', grep s/sdoc:://, select_keys(\'--criteria\' => \'sdoc::js::.*test/.*\')], @_);');
 meta::function('touch', 'associate($_, \'\') for @_;');
 meta::function('translate', <<'__b3cbf08ffddf8ec9901ed2cd342ccc2c');
 with_exported(@_, sub {
@@ -1101,15 +1083,23 @@ Syntax trees are formatted as arrays. There are several ways for them to be rend
   5. Identifier:      'foo'
   6. Number:          10
 __b8f97212d7f88a37aa589e3eda6db075
-meta::parent('../figment', <<'__76138baf646ac6f921ba9277a545ef53');
+meta::parent('../figment', <<'__183d8e9c4ca2b011d703a932b46fae6f');
+function::ct
+function::e
 function::parse
+function::t
+function::test
 function::test-parse
+function::testl
 meta::type::fig
 parent::/home/spencertipping/bin/node-base
 parent::development
 sdoc::js::figment
+sdoc::js::test/basic
+sdoc::js::test/comments
+sdoc::js::test/grouping
 vim_highlighter::figment
-__76138baf646ac6f921ba9277a545ef53
+__183d8e9c4ca2b011d703a932b46fae6f
 meta::parent('./sdoc', <<'__2d47795f5a2f946e1655dcc68b32aadd');
 function::lss
 function::sdoc
@@ -1372,7 +1362,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__c29cedcf3a40f35d0461afdfd78819fe');
+meta::sdoc('js::figment', <<'__9e18b43ccdf147d1c1d3636a850d0622');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1430,8 +1420,15 @@ The parser below uses a forward-definition technique I learned from reading Chri
 value of f to have the original definition automatically forward to the new one (which works because of lazy scoping).
 
   caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
-    this.figment = this.global().clone().field('decompile', parse).field('parse', parse),
-    where*[parse(s)      = expression(lex(s).join('\n')),
+    this.figment = this.global().clone().field('decompile', parse).field('parse', parse).field('lex', lex),
+    where*[parse(s)      = expression(lex(s)),
+
+           lex           = l*[literate     = peg[c(/[A-Z\|](?:\n?[^\n]+)*/, 1) >> fn_['']],
+                              paragraph    = peg[c(/(?:\n?[^\n]+)*/, 1) >> fn[xs][xs[0]]],
+                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][seq[~xs %[_]].join('\n')]],
+                              line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % [c('\n')] >> fn_[' ']],
+                              code         = peg[(line_comment / c(['-', '/']) / (c(/[^-\/]+/, 1) >> fn[xs][xs[0]]))[1] >> fn[xs][xs.join('')]]] in
+                           fn[s][code(paragraphs(s))],
 
            // Forward definition of expression
            expression(x) = expression(x),
@@ -1439,29 +1436,30 @@ value of f to have the original definition automatically forward to the new one 
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs.join('')]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
-           group         = l*[grouped_by(open, close) = peg[c(open) % expression % c(close) >> fn[xs][new caterwaul.syntax(xs[0], xs[1])]]] in
+           group         = l*[grouped_by(open, close) = peg[c(open) % expression % c(close) >> fn[xs][new caterwaul.syntax(open, xs[1])]]] in
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
-           atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]], number_options = peg[c(/\d+/, 1) / c(/\d*\.\d+([eE][-+]?\d+)?/, 1) >> fn[xs][xs[0]]],
-                                                                                               string_options = peg[c(/'([^']|\\.)*'/, 1) / c(/"([^"]|\\.)*"/, 1) >> fn[xs][xs[0]]]] in
+           atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]],
+                              number_options  = peg[c(/\d+/, 1) / c(/\d+\.\d*([eE][-+]?\d*)?/, 2) >> fn[xs][xs[0]]],
+                              string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][xs[0][0] + xs[1]]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 
            space         = peg[c(/\s+/, 1)],
            spaced(x)     = peg[space % x % space >> fn[xs][xs[1]]],
 
            // Eta-expansion of binary operators is required to support recursion
-           binary(op, l, inductive, base) = l*[p(x) = p(x), p = peg[l % [op % p] >> fn[xs][xs[1] ? inductive(xs[0], xs[0][1], xs[1][1]) : base ? base(xs[0]) : xs[0]]]] in p,
-           prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[xs][base ? base(xs[0]) : xs[0]])]] in p,
+           binary(op, l, inductive, base) = l*[p(x) = p(x), p = peg[l % [op % p] >> fn[xs][xs[1] ? inductive(xs[0], xs[1][0], xs[1][1]) : base ? base(xs[0]) : xs[0]]]] in p,
+           prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
            tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('tjoin', _, _0)]]]],
            tight_prefix  = peg[prefix(operator,                  tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
            tight_binary  = peg[binary(seq(operator, opt(space)), tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
            loose_join    = peg[binary(space,                     tight_binary, fn[l, op, r][new caterwaul.syntax('ljoin', l, r)])],
-           loose_prefix  = peg[prefix(seq(operator, space),      loose_join,   fn[   op, r][new caterwaul.syntax(op[1], r)])],
+           loose_prefix  = peg[prefix(seq(operator, space),      loose_join,   fn[   op, r][new caterwaul.syntax(op[0], r)])],
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__c29cedcf3a40f35d0461afdfd78819fe
+__9e18b43ccdf147d1c1d3636a850d0622
 meta::sdoc('js::javascript-visitor', <<'__6beb4830fef7eb06507647010bc2dcc2');
 Javascript visitor interpretation context | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -1509,6 +1507,79 @@ javascript_visitor = caterwaul.clone('std continuation seq')(function (tree) {
                                                                          JSON.stringify(n[1][0]) :
                                              atom(n) ? n.toString() : qs[unknown])]});
 __6beb4830fef7eb06507647010bc2dcc2
+meta::sdoc('js::test/basic', <<'__8e94fefaaf18a55806b3b39da41b22db');
+Basic tests for the lexer/parser.
+
+caterwaul.clone('std figment')(function () {
+  el('foo', 'foo'),
+
+  eq('foo', qs[foo]),
+  eq('_foo_', qs[_foo_]),
+
+  eq('(_foo_)', qse[qg[_foo_]]),
+  eq('[_foo_]', qse[[_foo_]]),
+
+  eq('foo+bar', qs[foo + bar]),
+  eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
+  eq('foo+bar - bif', qs[foo + bar - bif]),
+  eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'ljoin']),
+  eq('"foo"bar', qs["foo" + bar] /se[_.data = 'tjoin']),
+
+  eq('+bif', qs[+bif] /se[_.data = '+']),
+  eq('-%%!$`bif', qs[+bif] /se[_.data = '-%%!$`']),
+  eq('bar.bif', qs[bar.bif]),
+
+  eq('bar + bif-baz', qs[bar + _x].replace({_x: qs[bif - baz]})),
+
+  eq('"foo"', qs["foo"]),
+  eq('"foo bar"', qs["foo bar"]),
+
+  eq('foo^^%bar', qs[foo + bar] /se[_.data = '^^%']),
+  where*[count       = 0,
+         equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
+         el(s, t)    = equal(caterwaul.figment.lex(s), t),
+         eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).toString(), t.toString())]})();
+__8e94fefaaf18a55806b3b39da41b22db
+meta::sdoc('js::test/comments', <<'__89d0d390fde258c76a8bd4c24a398958');
+Tests for line and block comments (lexer tests).
+
+caterwaul.clone('std seq continuation figment')(function () {
+  eq('foo', 'foo'),
+  eq('foo - Bar', 'foo  '),
+  eq('-foo - Bar', '-foo  '),
+
+  eq('foo / Bar', 'foo  '),
+  eq('/foo / Bar', '/foo  '),
+
+  eq('Foo bar bif\n\nfoo', 'foo'),
+  eq('| var x = 10;\ny = 5;\n\nbif + bar', 'bif + bar'),
+
+  eq('foo\n\nBar bif\n\nbaz', 'foo\nbaz'),
+  eq('foo - Bar bif\nbaz', 'foo  baz'),
+  eq('foo- Bar bif\nbaz', 'foo baz'),
+  eq('foo3/ Bar\n\nBaz', 'foo3 '),
+
+  where*[equal(a, b) = a === b || null['#{a} should === #{b}'],
+         eq(s, t)    = equal(caterwaul.figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
+__89d0d390fde258c76a8bd4c24a398958
+meta::sdoc('js::test/grouping', <<'__ba61b23f6d831c72d367e59fb6707a13');
+Grouping construct tests.
+
+caterwaul.clone('std seq continuation figment')(function () {
+  eq('(foo)', qse[qg[foo]]),
+  eq('[foo]', qs[[foo]]),
+  eq('{foo:bar}', qs[{foo:bar}]),
+
+  eq('(foo) + (bar)', qse[qg[foo] + qg[bar]]),
+  eq('[foo] + [bar]', qs[[foo] + [bar]]),
+
+  eq('([foo])', qse[qg[[foo]]]),
+  eq('([[[[foo]]]])', qse[qg[[[[[foo]]]]]]),
+  eq('([([(foo)])])', qse[qg[[qg[[qg[foo]]]]]]),
+
+  where*[equal(a, b) = a === b || null['#{a} should === #{b}'],
+         eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).serialize(), t.serialize())]})();
+__ba61b23f6d831c72d367e59fb6707a13
 meta::sdoc('js::translate-figment', <<'__4d7e64ff036c3d42dd53735d4b74df05');
 Figment -> Javascript offline translator | Spencer Tipping
 Licensed under the terms of the MIT source code license
