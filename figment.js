@@ -55,14 +55,14 @@
 // value of f to have the original definition automatically forward to the new one (which works because of lazy scoping).
 
   caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
-    this.figment = this.global().clone().field('decompile', parse).field('parse', parse),
+    this.figment = this.global().clone().field('decompile', parse).field('parse', parse).field('lex', lex),
     where*[parse(s)      = expression(lex(s)),
 
            lex           = l*[literate     = peg[c(/[A-Z\|](?:[^\n]+\n?)*/, 1) >> fn_['']],
                               paragraph    = peg[c(/([^\n]+\n?)*/, 1) >> fn[xs][xs[0]]],
-                              paragraphs   = peg[([c(/\n\n+/, 2)] % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][xs.join('')]],
-                              line_comment = peg[c(/^[-\/]\s*$/, 1) % c(/[A-Z][^\n]*\n/, 1) >> fn_['']],
-                              code         = peg[(line_comment / c(/[^-\/]+/, 1))[0] >> fn[xs][xs.join('')]]] in
+                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][xs.join('')]],
+                              line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % c('\n') >> fn_['']],
+                              code         = peg[(line_comment / c(['-', '/']) / c(/[^-\/]+/, 1))[1] >> fn[xs][xs.join('')]]] in
                            fn[s][code(paragraphs(s))],
 
            // Forward definition of expression
@@ -71,7 +71,7 @@
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs.join('')]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
-           group         = l*[grouped_by(open, close) = peg[c(open) % expression % c(close) >> fn[xs][new caterwaul.syntax(xs[0], xs[1])]]] in
+           group         = l*[grouped_by(open, close) = peg[c(open) % expression % c(close) >> fn[xs][new caterwaul.syntax(open, xs[1])]]] in
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]], number_options = peg[c(/\d+/, 1) / c(/\d*\.\d+([eE][-+]?\d+)?/, 1) >> fn[xs][xs[0]]],
