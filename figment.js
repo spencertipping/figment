@@ -58,10 +58,10 @@
     this.figment = this.global().clone().field('decompile', parse).field('parse', parse).field('lex', lex),
     where*[parse(s)      = expression(lex(s)),
 
-           lex           = l*[literate     = peg[c(/[A-Z\|](?:[^\n]+\n?)*/, 1) >> fn_['']],
-                              paragraph    = peg[c(/(?:[^\n]+\n?)*/, 1) >> fn[xs][xs[0]]],
-                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][xs.join('')]],
-                              line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % c('\n') >> fn_['']],
+           lex           = l*[literate     = peg[c(/[A-Z\|](?:\n?[^\n]+)*/, 1) >> fn_['']],
+                              paragraph    = peg[c(/(?:\n?[^\n]+)*/, 1) >> fn[xs][xs[0]]],
+                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][seq[~xs %[_]].join('\n')]],
+                              line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % [c('\n')] >> fn_[' ']],
                               code         = peg[(line_comment / c(['-', '/']) / (c(/[^-\/]+/, 1) >> fn[xs][xs[0]]))[1] >> fn[xs][xs.join('')]]] in
                            fn[s][code(paragraphs(s))],
 
@@ -75,7 +75,7 @@
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]],
-                              number_options  = peg[c(/\d+/, 1) / c(/\d*\.\d+([eE][-+]?\d+)?/, 1) >> fn[xs][xs[0]]],
+                              number_options  = peg[c(/\d+/, 1) / c(/\d+\.\d*([eE][-+]?\d*)?/, 2) >> fn[xs][xs[0]]],
                               string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][xs[0][0] + xs[1]]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 

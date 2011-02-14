@@ -325,6 +325,7 @@ return edit($name) if exists $data{$name};
 associate($name, defined $value ? $value : '');
 edit($name) unless defined $value;
 __7ca9912feb8e43dc446bab9a0c79821a
+meta::function('ct', 'create("sdoc::js::test/$_[0]");');
 meta::function('current-state', <<'__d83ae43551c0f58d1d0ce576402a315a');
 my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
@@ -1047,16 +1048,10 @@ Parsing works in a fairly straightforward way, but it does have some quirks. Amo
   3. Paragraphs are assumed to be side-effectful and self-contained. However, paragraph breaks don't happen inside expressions; for example, opening a paren and then creating a paragraph break
      has no effect because the paren group is the active parse state. (This can be undesirable; it requires the host semantics to allow file-specific context.)
 __0252e9ccc128d793d2b6566a30203cb8
-meta::note('q', <<'__1506e7ce47f07f339e9869afbd9c7162');
+meta::note('q', <<'__55f7cc4240c82be7b3c7a9139305cd88');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
-convert text into syntax trees.
-
-Todo.
-
-| 1. Write a figment -> JSON parser. [done]
-  2. Create some skeletal semantics and write a JSON -> JSON interpreter (the goal being to macroexpand code). [in progress]
-  3. Write a figment-JSON -> Javascript converter (with some sane semantics).
+convert text into syntax trees. In this case the syntax trees are based on Caterwaul's format -- this enables caterwaul-based macroexpansion.
 
 Thoughts about aesthetics.
 Aesthetics shouldn't be written off completely. It's important to not only allow but encourage repetition at some points. For example:
@@ -1068,7 +1063,7 @@ Aesthetics shouldn't be written off completely. It's important to not only allow
   #foo .bif.baz {...}
 
 This kind of repetition visually reinforces what's going on. Depending on the application it may be appropriate (though the user should always have a way to eliminate it).
-__1506e7ce47f07f339e9869afbd9c7162
+__55f7cc4240c82be7b3c7a9139305cd88
 meta::parent('./sdoc', <<'__2d47795f5a2f946e1655dcc68b32aadd');
 function::lss
 function::sdoc
@@ -1331,7 +1326,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__e6479094702b4bb87b20286c17973a23');
+meta::sdoc('js::figment', <<'__9e18b43ccdf147d1c1d3636a850d0622');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1392,10 +1387,10 @@ value of f to have the original definition automatically forward to the new one 
     this.figment = this.global().clone().field('decompile', parse).field('parse', parse).field('lex', lex),
     where*[parse(s)      = expression(lex(s)),
 
-           lex           = l*[literate     = peg[c(/[A-Z\|](?:[^\n]+\n?)*/, 1) >> fn_['']],
-                              paragraph    = peg[c(/(?:[^\n]+\n?)*/, 1) >> fn[xs][xs[0]]],
-                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][xs.join('')]],
-                              line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % c('\n') >> fn_['']],
+           lex           = l*[literate     = peg[c(/[A-Z\|](?:\n?[^\n]+)*/, 1) >> fn_['']],
+                              paragraph    = peg[c(/(?:\n?[^\n]+)*/, 1) >> fn[xs][xs[0]]],
+                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][seq[~xs %[_]].join('\n')]],
+                              line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % [c('\n')] >> fn_[' ']],
                               code         = peg[(line_comment / c(['-', '/']) / (c(/[^-\/]+/, 1) >> fn[xs][xs[0]]))[1] >> fn[xs][xs.join('')]]] in
                            fn[s][code(paragraphs(s))],
 
@@ -1409,7 +1404,7 @@ value of f to have the original definition automatically forward to the new one 
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]],
-                              number_options  = peg[c(/\d+/, 1) / c(/\d*\.\d+([eE][-+]?\d+)?/, 1) >> fn[xs][xs[0]]],
+                              number_options  = peg[c(/\d+/, 1) / c(/\d+\.\d*([eE][-+]?\d*)?/, 2) >> fn[xs][xs[0]]],
                               string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][xs[0][0] + xs[1]]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 
@@ -1428,8 +1423,8 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__e6479094702b4bb87b20286c17973a23
-meta::sdoc('js::test/basic', <<'__fda2ad5560c5dae01d0cb28ceafb0eae');
+__9e18b43ccdf147d1c1d3636a850d0622
+meta::sdoc('js::test/basic', <<'__8e94fefaaf18a55806b3b39da41b22db');
 Basic tests for the lexer/parser.
 
 caterwaul.clone('std figment')(function () {
@@ -1451,6 +1446,8 @@ caterwaul.clone('std figment')(function () {
   eq('-%%!$`bif', qs[+bif] /se[_.data = '-%%!$`']),
   eq('bar.bif', qs[bar.bif]),
 
+  eq('bar + bif-baz', qs[bar + _x].replace({_x: qs[bif - baz]})),
+
   eq('"foo"', qs["foo"]),
   eq('"foo bar"', qs["foo bar"]),
 
@@ -1459,7 +1456,47 @@ caterwaul.clone('std figment')(function () {
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(caterwaul.figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).toString(), t.toString())]})();
-__fda2ad5560c5dae01d0cb28ceafb0eae
+__8e94fefaaf18a55806b3b39da41b22db
+meta::sdoc('js::test/comments', <<'__89d0d390fde258c76a8bd4c24a398958');
+Tests for line and block comments (lexer tests).
+
+caterwaul.clone('std seq continuation figment')(function () {
+  eq('foo', 'foo'),
+  eq('foo - Bar', 'foo  '),
+  eq('-foo - Bar', '-foo  '),
+
+  eq('foo / Bar', 'foo  '),
+  eq('/foo / Bar', '/foo  '),
+
+  eq('Foo bar bif\n\nfoo', 'foo'),
+  eq('| var x = 10;\ny = 5;\n\nbif + bar', 'bif + bar'),
+
+  eq('foo\n\nBar bif\n\nbaz', 'foo\nbaz'),
+  eq('foo - Bar bif\nbaz', 'foo  baz'),
+  eq('foo- Bar bif\nbaz', 'foo baz'),
+  eq('foo3/ Bar\n\nBaz', 'foo3 '),
+
+  where*[equal(a, b) = a === b || null['#{a} should === #{b}'],
+         eq(s, t)    = equal(caterwaul.figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
+__89d0d390fde258c76a8bd4c24a398958
+meta::sdoc('js::test/grouping', <<'__ba61b23f6d831c72d367e59fb6707a13');
+Grouping construct tests.
+
+caterwaul.clone('std seq continuation figment')(function () {
+  eq('(foo)', qse[qg[foo]]),
+  eq('[foo]', qs[[foo]]),
+  eq('{foo:bar}', qs[{foo:bar}]),
+
+  eq('(foo) + (bar)', qse[qg[foo] + qg[bar]]),
+  eq('[foo] + [bar]', qs[[foo] + [bar]]),
+
+  eq('([foo])', qse[qg[[foo]]]),
+  eq('([[[[foo]]]])', qse[qg[[[[[foo]]]]]]),
+  eq('([([(foo)])])', qse[qg[[qg[[qg[foo]]]]]]),
+
+  where*[equal(a, b) = a === b || null['#{a} should === #{b}'],
+         eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).serialize(), t.serialize())]})();
+__ba61b23f6d831c72d367e59fb6707a13
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];

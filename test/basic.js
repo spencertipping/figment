@@ -19,6 +19,8 @@ caterwaul.clone('std figment')(function () {
   eq('-%%!$`bif', qs[+bif] /se[_.data = '-%%!$`']),
   eq('bar.bif', qs[bar.bif]),
 
+  eq('bar + bif-baz', qs[bar + _x].replace({_x: qs[bif - baz]})),
+
   eq('"foo"', qs["foo"]),
   eq('"foo bar"', qs["foo bar"]),
 
