@@ -1317,7 +1317,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::fig.parser', <<'__25d389dded35354b8f4a846159140bd0');
+meta::sdoc('js::fig.parser', <<'__b8e94df9f5572acf06ad49509dc7529e');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1395,8 +1395,8 @@ value of f to have the original definition automatically forward to the new one 
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][new caterwaul.syntax(xs[0] + xs[1])]],
-                              number_options  = peg[c(/\d+\.\d+([eE][-+]?\d*)?/, 3) / c(/\d+/, 1) >> fn[xs][xs[0]]],
-                              string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][xs[0][0] + xs[1]]]] in
+                              number_options  = peg[c(/\d+\.\d+([eE][-+]?\d*)?/, 3) / c(/\d+/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
+                              string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][new caterwaul.syntax(xs[0][0] + xs[1])]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 
            space         = peg[c(/\s+/, 1)],
@@ -1415,7 +1415,7 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__25d389dded35354b8f4a846159140bd0
+__b8e94df9f5572acf06ad49509dc7529e
 meta::sdoc('js::fig.semantics', <<'__f55b3ef75df7ad8b1dbd43f640c2c4fa');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -1626,7 +1626,7 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
 __45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/s-data-structures', <<'__f1a54ce20798ddaf23310d8299f56bc4');
+meta::sdoc('js::test/s-data-structures', <<'__17d3f9aa420ba50346116cd3d1f6fb10');
 Data structure semantic tests.
 
 caterwaul.clone('std')(function () {
@@ -1637,8 +1637,16 @@ caterwaul.clone('std')(function () {
   fig('{x: 6}').x == 6;
   fig('{x: 6, y: 7}').y == 7;
   fig('{x: 8, y: 7}').x == 8;
+
+  fig('9') == 9;
+  fig('(10)') == 10,
+  fig('((11))') == 11;
+  fig('(((12)))') == 12;
+  fig('"foo"') == 'foo';
+  fig('("foo2")') == 'foo2';
+  fig('(("foo3"))') == 'foo3';
 })();
-__f1a54ce20798ddaf23310d8299f56bc4
+__17d3f9aa420ba50346116cd3d1f6fb10
 meta::sdoc('js::test/s-operators', <<'__3c29d2758bc5d7bd0622680df2494d6b');
 Tests for unary/binary operator translation.
 

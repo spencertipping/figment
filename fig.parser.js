@@ -75,8 +75,8 @@
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][new caterwaul.syntax(xs[0] + xs[1])]],
-                              number_options  = peg[c(/\d+\.\d+([eE][-+]?\d*)?/, 3) / c(/\d+/, 1) >> fn[xs][xs[0]]],
-                              string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][xs[0][0] + xs[1]]]] in
+                              number_options  = peg[c(/\d+\.\d+([eE][-+]?\d*)?/, 3) / c(/\d+/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
+                              string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][new caterwaul.syntax(xs[0][0] + xs[1])]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 
            space         = peg[c(/\s+/, 1)],
