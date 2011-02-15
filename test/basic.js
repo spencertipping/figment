@@ -40,6 +40,10 @@ caterwaul.clone('std figment')(function () {
   eq('0.0E-0', qs[0.0E-0]),
   eq('0.0E0', qs[0.0E0]),
 
+  eq('foo =bar bif', qs[foo + bif] /se[_.data = '=bar']),
+  eq('=bar bif', qs[+bif] /se[_.data = '=bar']),
+  eq('_+% + _-#!', qs[_x + _y].replace({_x: '_+%', _y: '_-#!'})),
+
   eq('foo,bar', qs[foo,bar]),
   eq('foo+bif,bar', qs[foo + bif, bar]),
   eq('foo + bif,bar', qs[foo + bif, bar]),

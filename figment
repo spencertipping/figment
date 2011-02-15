@@ -1414,7 +1414,7 @@ value of f to have the original definition automatically forward to the new one 
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 __61a6e670cdf147d1c1d3636afcb539ee
-meta::sdoc('js::test/basic', <<'__5de4d3e1143e9b5041ae3be8f8b2e353');
+meta::sdoc('js::test/basic', <<'__f193cbee3810cee1536429a3bb776910');
 Basic tests for the lexer/parser.
 
 caterwaul.clone('std figment')(function () {
@@ -1457,6 +1457,10 @@ caterwaul.clone('std figment')(function () {
   eq('0.0E-0', qs[0.0E-0]),
   eq('0.0E0', qs[0.0E0]),
 
+  eq('foo =bar bif', qs[foo + bif] /se[_.data = '=bar']),
+  eq('=bar bif', qs[+bif] /se[_.data = '=bar']),
+  eq('_+% + _-#!', qs[_x + _y].replace({_x: '_+%', _y: '_-#!'})),
+
   eq('foo,bar', qs[foo,bar]),
   eq('foo+bif,bar', qs[foo + bif, bar]),
   eq('foo + bif,bar', qs[foo + bif, bar]),
@@ -1477,7 +1481,7 @@ caterwaul.clone('std figment')(function () {
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(caterwaul.figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).toString(), t.toString())]})();
-__5de4d3e1143e9b5041ae3be8f8b2e353
+__f193cbee3810cee1536429a3bb776910
 meta::sdoc('js::test/comments', <<'__89d0d390fde258c76a8bd4c24a398958');
 Tests for line and block comments (lexer tests).
 
