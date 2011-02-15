@@ -463,6 +463,12 @@ join "\n", map strip($_), split /\n/, table_display($all ? [@definitions] : [gre
 __acdc3ca5777ab9c7c430d493a7555998
 meta::function('ls-a', 'ls(\'-ad\', @_);');
 meta::function('lss', '# Attribute function::lss');
+meta::function('me', <<'__e4c1188550b57197bbd7218c9cbc4c49');
+# Uses Figment to parse and macroexpand a tree.
+node(['cached_dependency::caterwaul.all.js', 'js::figment', <<EOF], @_);
+id::console.log('%s', caterwaul.clone('std figment').figment.parse(process.argv.slice(2).join(' ')));
+EOF
+__e4c1188550b57197bbd7218c9cbc4c49
 meta::function('mv', <<'__52e95180e3c7019116bd798e0da0fdda');
 my ($from, $to) = @_;
 die "'$from' does not exist" unless exists $data{$from};
@@ -1316,7 +1322,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__61a6e670cdf147d1c1d3636afcb539ee');
+meta::sdoc('js::figment', <<'__8d8572e413ced8c1d816333323f3c407');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1390,7 +1396,7 @@ value of f to have the original definition automatically forward to the new one 
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs.join('')]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
-           group         = l*[grouped_by(open, close) = peg[c(open) % expression % c(close) >> fn[xs][new caterwaul.syntax(open, xs[1])]]] in
+           group         = l*[grouped_by(open, close) = peg[c(open) % [expression] % c(close) >> fn[xs][xs[1] ? new caterwaul.syntax(open, xs[1]) : new caterwaul.syntax(open)]]] in
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]],
@@ -1405,6 +1411,7 @@ value of f to have the original definition automatically forward to the new one 
            binary(op, l, inductive, base) = l*[p(x) = p(x), p = peg[l % [op % p] >> fn[xs][xs[1] ? inductive(xs[0], xs[1][0], xs[1][1]) : base ? base(xs[0]) : xs[0]]]] in p,
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
+           // At the lowest level an expression is optional; this is required to support empty brackets, e.g. []
            tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('tjoin', _, _0)]]]],
            tight_prefix  = peg[prefix(operator,                  tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
            tight_binary  = peg[binary(seq(operator, opt(space)), tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
@@ -1413,8 +1420,8 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__61a6e670cdf147d1c1d3636afcb539ee
-meta::sdoc('js::test/basic', <<'__f193cbee3810cee1536429a3bb776910');
+__8d8572e413ced8c1d816333323f3c407
+meta::sdoc('js::test/basic', <<'__6ba986d8b0ecf6cc4c5427465870c8fd');
 Basic tests for the lexer/parser.
 
 caterwaul.clone('std figment')(function () {
@@ -1426,11 +1433,17 @@ caterwaul.clone('std figment')(function () {
   eq('(_foo_)', qse[qg[_foo_]]),
   eq('[_foo_]', qse[[_foo_]]),
 
+  eq('()', qs[[]] /se[_.data = '(']),
+  eq('{}', qs[[]] /se[_.data = '{']),
+  eq('[]', qs[[]]),
+
   eq('foo?', qs[foo] /se[_.data = 'foo?']),
   eq('foo?!', qs[foo] /se[_.data = 'foo?!']),
   eq('foo?!\'', qs[foo] /se[_.data = 'foo?!\'']),
   eq('foo\'\'', qs[foo] /se[_.data = 'foo\'\'']),
   eq('foo\'\'"bar"', qs[_x + "bar"] /se[_[0] = qs[foo] /se[_.data = 'foo\'\''], _.data = 'tjoin']),
+
+  eq('foo"bar"bif', qs[foo + _x].replace({_x: qs["bar" + bif] /se[_.data = 'tjoin']}) /se[_.data = 'tjoin']),
 
   eq('foo+bar', qs[foo + bar]),
   eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
@@ -1481,7 +1494,7 @@ caterwaul.clone('std figment')(function () {
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(caterwaul.figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).toString(), t.toString())]})();
-__f193cbee3810cee1536429a3bb776910
+__6ba986d8b0ecf6cc4c5427465870c8fd
 meta::sdoc('js::test/comments', <<'__89d0d390fde258c76a8bd4c24a398958');
 Tests for line and block comments (lexer tests).
 

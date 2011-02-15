@@ -71,7 +71,7 @@
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs.join('')]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
-           group         = l*[grouped_by(open, close) = peg[c(open) % expression % c(close) >> fn[xs][new caterwaul.syntax(open, xs[1])]]] in
+           group         = l*[grouped_by(open, close) = peg[c(open) % [expression] % c(close) >> fn[xs][xs[1] ? new caterwaul.syntax(open, xs[1]) : new caterwaul.syntax(open)]]] in
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][xs.join('')]],
@@ -86,6 +86,7 @@
            binary(op, l, inductive, base) = l*[p(x) = p(x), p = peg[l % [op % p] >> fn[xs][xs[1] ? inductive(xs[0], xs[1][0], xs[1][1]) : base ? base(xs[0]) : xs[0]]]] in p,
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
+           // At the lowest level an expression is optional; this is required to support empty brackets, e.g. []
            tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('tjoin', _, _0)]]]],
            tight_prefix  = peg[prefix(operator,                  tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
            tight_binary  = peg[binary(seq(operator, opt(space)), tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
