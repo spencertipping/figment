@@ -1,9 +1,5 @@
 Figment - a dynamically typed programming language with no defined semantics
 
-Acknowledgements: This project makes liberal use of Chris Double's jsparse,
-downloaded from github.com/doublec/jsparse.git. If you haven't checked it out,
-you probably should. It's awesome.
-
 Figment is a programming language unburdened with preconceived notions about
 purpose and operational semantics. Its purpose is to be anything and everything
 to anyone and everyone who uses it in any capacity. The core design principles
@@ -15,13 +11,4 @@ are:
 4. Customizability - every construct can be reinterpreted
 5. Perl - Perl is awesome, so use (steal) features from it
 
-The Figment -> JSON parser is maintained as a self-modifying Perl file [1]
-called figment. You can run it like this:
-
-$ ./figment parse examples/ops.fig      # Parse a file
-$ ./figment parse "id::3 + 5"           # Parse the string '3 + 5'
-
-It prints its output to stdout.
-
-[1] See github.com/spencertipping/writing-self-modifying-perl for details, and
-    github.com/spencertipping/perl-objects for some other scripts.
+I'm not even going to try to describe how to use this language.
