@@ -1626,17 +1626,23 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
 __45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/s-data-structures', <<'__17d3f9aa420ba50346116cd3d1f6fb10');
+meta::sdoc('js::test/s-data-structures', <<'__e5a6ebcab3992ab9318400f342eeadf4');
 Data structure semantic tests.
 
 caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
   var fig = caterwaul.clone('fig.semantics fig.parser');
 
+  fig('[]').length == 0;
   fig('[x]', {x: 5})[0] == 5;
+  fig('[x, y]', {x: 5, y: 5.1})[1] == 5.1;
   fig('{x: 6}').x == 6;
+  fig('{x: [6.1]}').x[0] == 6.1;
+  fig('{x: [6.1, 6.2]}').x[1] == 6.2;
   fig('{x: 6, y: 7}').y == 7;
   fig('{x: 8, y: 7}').x == 8;
+
+  fig('{}').foo == undefined;
 
   fig('9') == 9;
   fig('(10)') == 10,
@@ -1646,7 +1652,7 @@ caterwaul.clone('std')(function () {
   fig('("foo2")') == 'foo2';
   fig('(("foo3"))') == 'foo3';
 })();
-__17d3f9aa420ba50346116cd3d1f6fb10
+__e5a6ebcab3992ab9318400f342eeadf4
 meta::sdoc('js::test/s-operators', <<'__3c29d2758bc5d7bd0622680df2494d6b');
 Tests for unary/binary operator translation.
 

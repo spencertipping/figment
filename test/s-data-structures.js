@@ -4,10 +4,16 @@ caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
   var fig = caterwaul.clone('fig.semantics fig.parser');
 
+  fig('[]').length == 0;
   fig('[x]', {x: 5})[0] == 5;
+  fig('[x, y]', {x: 5, y: 5.1})[1] == 5.1;
   fig('{x: 6}').x == 6;
+  fig('{x: [6.1]}').x[0] == 6.1;
+  fig('{x: [6.1, 6.2]}').x[1] == 6.2;
   fig('{x: 6, y: 7}').y == 7;
   fig('{x: 8, y: 7}').x == 8;
+
+  fig('{}').foo == undefined;
 
   fig('9') == 9;
   fig('(10)') == 10,
