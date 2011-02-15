@@ -1341,7 +1341,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::caterwaul-semantic', <<'__3bfbfd6f169e91923d756ab918306bbd');
+meta::sdoc('js::caterwaul-semantic', <<'__509c9287472fda8033b80c6b71517037');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1398,8 +1398,24 @@ Here is what happens:
   5. Braced groups are checked for validity. If each comma-expression contains a colon, then it's converted to a regular Javascript object. Otherwise it's converted into a method call on the
      braced value: {foo bar bif} becomes foo(bar)(bif)['{}']().
   6. Dots are preserved and are associative; that is, 'foo.bar.bif' renders as 'foo.bar.bif', even though Javascript reinterprets the dot to associate left.
-  7. 
-__3bfbfd6f169e91923d756ab918306bbd
+  7. String and numeric literals are converted identically.
+  8. The letter 'r' joined to a string becomes a regular expression, e.g: 'r"foo"' becomes /foo/.
+
+caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
+  this.macro(qs[_], fn[t][regexp_promotion(t) || constant_literal(t) || dot(t) || braced_group(t) || directed_join(t) || join_to_invocation_promotion(t) ||
+                          binary_operator(t) || unary_operator(t) || identifier(t)]),
+
+  Implementation details.
+  There are some shortcuts in this implementation because of the way Figment parses stuff. Perhaps the most notable one deals with figuring out whether a braced group is syntactically valid.
+  Figment right-associates things, so a valid braced group has the characteristic that each member of the comma expression (assuming a comma at all) will have as its data element a colon. Then
+  the left side will be nullary, signifying a constant of some sort. (Any constant will do; it doesn't have to be a literal, and I'm not handling the case of reserved words.)
+
+  where*[qualifies_for_regexp_promotion(t) = t.data === 'join' && t[0].match(qs[r]) && t[1].is_string(),
+         is_constant_literal(t)            = t.is_constant(),
+         is_valid_braced_group(t)          = t.data === '{' && l*[valid_kv_pair(t)        = t.data === ':' && t[0].length === 0,
+                                                                  valid_braced_element(t) = t.data === ',' ? valid_kv_pair(t[0]) && valid_braced_element(t[1]) :
+                                                                                            t.data === ':' ? valid_kv_pair(t[0]) : false] in valid_braced_element(t[0])]});
+__509c9287472fda8033b80c6b71517037
 meta::sdoc('js::figment', <<'__3b2820b4e9d092b54a3c6615e1bb08d7');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
