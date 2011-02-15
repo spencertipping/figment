@@ -1038,16 +1038,6 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
-meta::note('parse-specs', <<'__0252e9ccc128d793d2b6566a30203cb8');
-Parsing specs.
-Parsing works in a fairly straightforward way, but it does have some quirks. Among them are:
-
-| 1. All binary operators associate right by default. This may or may not be desirable.
-  2. Precedence is unencoded in the parse tree, but instantiation-specific spacing is encoded. For example, 3+4 * 5 results in the + binding before *, defying both intuition and
-     right-associativity.
-  3. Paragraphs are assumed to be side-effectful and self-contained. However, paragraph breaks don't happen inside expressions; for example, opening a paren and then creating a paragraph break
-     has no effect because the paren group is the active parse state. (This can be undesirable; it requires the host semantics to allow file-specific context.)
-__0252e9ccc128d793d2b6566a30203cb8
 meta::note('q', <<'__55f7cc4240c82be7b3c7a9139305cd88');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
