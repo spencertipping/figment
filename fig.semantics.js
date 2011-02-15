@@ -51,43 +51,33 @@
 //   3. Irregular unary and binary operators are converted to method calls. So for instance 'a ++ b' is converted to 'a["++"](b)'.
 //   4. Joins are converted in one of two ways. A join against a paren or bracket is converted as an invocation or dereference, and a join onto anything else is converted as a function call. So,
 //      for example, 'f(x)' is identity, as is 'f[x]'. But 'f x' becomes f(x), and 'f"foo"' becomes f("foo").
-//   5. Braced groups are checked for validity. If each comma-expression contains a colon, then it's converted to a regular Javascript object. Otherwise it's converted into a method call on the
-//      braced value: {foo bar bif} becomes foo(bar)(bif)['{}']().
-//   6. Dots are preserved and are associative; that is, 'foo.bar.bif' renders as 'foo.bar.bif', even though Javascript reinterprets the dot to associate left.
+//   5. Braced groups are assumed to be valid Javascript objects. This means a couple of things. One is that the colon operator is left alone (which could easily break stuff), and the other is
+//      that you need to define macros to transform {} blocks if you want a different meaning for them.
+//   6. Dots are preserved and are associative; that is, 'foo.bar.bif' renders as 'foo.bar.bif', even though Javascript reinterprets the dot to associate left. The same goes for commas and
+//      colons, in order to satisfy various Javascript syntax constraints.
 //   7. String and numeric literals are converted identically.
 //   8. The letter 'r' joined to a string becomes a regular expression, e.g: 'r"foo"' becomes /foo/.
 
 caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
   this.macro(qs[_], transform),
 
-//   Implementation details.
-//   There are some shortcuts in this implementation because of the way Figment parses stuff. Perhaps the most notable one deals with figuring out whether a braced group is syntactically valid.
-//   Figment right-associates things, so a valid braced group has the characteristic that each member of the comma expression (assuming a comma at all) will have as its data element a colon. Then
-//   the left side will be nullary, signifying a constant of some sort. (Any constant will do; it doesn't have to be a literal, and I'm not handling the case of reserved words.)
-
-//   This has the possibly frustrating side-effect that the : must be spaced apart from the key and value; otherwise it's considered a tight join and won't percolate to the top of the precedence
-//   hierarchy. (This concern is obviously subject to any macros that might fix the problem by rearranging stuff.)
-
   where*[qualifies_for_regexp_promotion(t) = t.data === 'join' && t[0].match(qs[r]) && t[1].is_string(),
-         is_valid_braced_group(t)          = t.data === '{' && l*[valid_kv_pair(t)        = t && t.data === ':' && t[0].length === 0,
-                                                                  valid_braced_element(t) = t && (t.data === ',' ? valid_kv_pair(t[0]) && valid_braced_element(t[1]) :
-                                                                                                  t.data === ':' ? valid_kv_pair(t[0]) : false)] in valid_braced_element(t[0]),
 
-         valid_binary_operators            = seq[~'* / % + - << >> >>> & | ^ && || < > <= >= == != === !== ='.split(/\s+/) *[[_, true]]].object(),
-         valid_unary_operators             = seq[~'u+ u- u~ u!'.split(/\s+/) *[[_, true]]].object(),
-         is_valid_binary_operator(t)       = valid_binary_operators.hasOwnProperty(t.data),
-         is_valid_unary_operator(t)        = valid_unary_operators.hasOwnProperty(t.data),
+         operator_bucket(ops)              = l[bucket = seq[~ops.split(/\s+/) *[[_, true]]].object()] in fn[t][bucket.hasOwnProperty(t.data)],
+         is_valid_binary_operator          = operator_bucket('* / % + - << >> >>> & | ^ && || < > <= >= == != === !== ='),
+         is_valid_unary_operator           = operator_bucket('u+ u- u~ u!'),
+         is_valid_groupless_operator       = operator_bucket(': , .'),
 
          // Conversion logic (above is the detection logic):
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),
          constant_literal(t)               = t.is_constant() && t.as('('),
-         dot(t)                            = t.length === 2 && t.data === '.' && t,
-         comma(t)                          = t.length === 2 && t.data === ',' && t,
-         braced_group(t)                   = t.data === '{' && (is_valid_braced_group(t) ? t : qs[_x['{}']()].replace({_x: t[0]})),
-         regular_group(t)                  = (t.data === '(' || t.data === '[') && t,
+
+         regular_group(t)                  = (t.data === '(' || t.data === '[' || t.data === '{') && t,
          direct_join_as_invocation(t)      = t.data === 'join' && (t[1].data === '(' && qs[_x(_y)].replace({_x: t[0], _y: t[1][0]}) ||
                                                                    t[1].data === '[' && qs[_x[_y]].replace({_x: t[0], _y: t[1][0]})),
          join_to_invocation_promotion(t)   = t.data === 'join' && qs[_x(_y)].replace({_x: t[0], _y: t[1]}),
+
+         groupless_operator(t)             = t.length === 2 && is_valid_groupless_operator(t) && t,
          binary_operator(t)                = t.length === 2 && (is_valid_binary_operator(t) ? t.as('(') : qs[_l[_op](_r)].replace({_l: t[0], _op: '"#{t.data}"', _r: t[1]})),
          unary_operator(t)                 = t.length === 1 && (is_valid_unary_operator(t)  ? t.as('(') : qs[_l[_op]()].  replace({_l: t[0], _op: '"#{t.data}"'})),
 
@@ -96,7 +86,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
                                              t /se[_.data = _.data /re[_ && _.replace(/[^A-Za-z0-9_$]/g, fn[c][identifier_mapping[c] || '$#{c.charCodeAt(0).toString(16)}'])
                                                                             /re[/\d/.test(_.charAt(0)) ? '$#{_}' : _]]],
          // The tree-walking transformation:
-         transform_single(t)               = regexp_promotion(t) || constant_literal(t) || dot(t) || comma(t) || braced_group(t) || regular_group(t) || direct_join_as_invocation(t) ||
+         transform_single(t)               = regexp_promotion(t) || constant_literal(t) || groupless_operator(t) || regular_group(t) || direct_join_as_invocation(t) ||
                                              join_to_invocation_promotion(t) || binary_operator(t) || unary_operator(t) || identifier(t) || t,
          transform(t)                      = t && transform_single(t.map(transform))]});
 // Generated by SDoc 
