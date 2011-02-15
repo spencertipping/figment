@@ -1416,7 +1416,7 @@ value of f to have the original definition automatically forward to the new one 
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 __8572d2fded35354b8f4a84619d38e032
-meta::sdoc('js::fig.semantics', <<'__426a5925428734d41bae6344bb07d14c');
+meta::sdoc('js::fig.semantics', <<'__a38018b6391c81a7703950e9d0828ec4');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1495,7 +1495,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          valid_binary_operators            = seq[~'* / % + - << >> >>> & | ^ && || < > <= >= == != === !== = += -= *= /= %= <<= >>= >>>= &= |= ^='.split(/\s+/) *[[_, true]]].object(),
          valid_unary_operators             = seq[~'u+ u- u~ u!'.split(/\s+/) *[[_, true]]].object(),
          is_valid_binary_operator(t)       = valid_binary_operators.hasOwnProperty(t.data),
-         is_valid_unary_operator(t)        = valid_unary_operator.hasOwnProperty(t.data),
+         is_valid_unary_operator(t)        = valid_unary_operators.hasOwnProperty(t.data),
 
          is_valid_invocation_target(t)     = t.data === '(' || t.data === '[',
 
@@ -1503,7 +1503,9 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),
          constant_literal(t)               = t.is_constant() && t,
          dot(t)                            = t.length === 2 && t.data === '.' && t,
+         comma(t)                          = t.length === 2 && t.data === ',' && t,
          braced_group(t)                   = t.data === '{' && (is_valid_braced_group(t) ? t : qs[_x['{}']()].replace({_x: t[0]})),
+         regular_group(t)                  = (t.data === '(' || t.data === '[') && t,
          direct_join_as_invocation(t)      = t.data === 'join' && is_valid_invocation_target(t[1]) && qs[_x(_y)].replace({_x: t[0], _y: t[1][0]}),
          join_to_invocation_promotion(t)   = t.data === 'join' && qs[_x(_y)].replace({_x: t[0], _y: t[1]}),
          binary_operator(t)                = t.length === 2 && (is_valid_binary_operator(t) ? t.as('(') : qs[_l[_op](_r)].replace({_l: t[0], _op: '"#{t.data}"', _r: t[1]})),
@@ -1514,10 +1516,10 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
                                              t /se[_.data = _.data /re[_ && _.replace(/[^A-Za-z0-9_$]/g, fn[c][identifier_mapping[c] || '$#{c.charCodeAt(0).toString(16)}'])
                                                                             /re[/\d/.test(_.charAt(0)) ? '$#{_}' : _]]],
          // The tree-walking transformation:
-         transform_single(t)               = regexp_promotion(t) || constant_literal(t) || dot(t) || braced_group(t) || direct_join_as_invocation(t) || join_to_invocation_promotion(t) ||
-                                             binary_operator(t) || unary_operator(t) || identifier(t) || t,
+         transform_single(t)               = regexp_promotion(t) || constant_literal(t) || dot(t) || comma(t) || braced_group(t) || regular_group(t) || direct_join_as_invocation(t) ||
+                                             join_to_invocation_promotion(t) || binary_operator(t) || unary_operator(t) || identifier(t) || t,
          transform(t)                      = t && transform_single(t.map(transform))]});
-__426a5925428734d41bae6344bb07d14c
+__a38018b6391c81a7703950e9d0828ec4
 meta::sdoc('js::test/basic', <<'__4e9f14422911120b83bbdbe80b697f8a');
 Basic tests for the lexer/parser.
 
@@ -1635,7 +1637,7 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
 __45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/s-operators', <<'__acd80e6a72c5e2443267820f90aafa4a');
+meta::sdoc('js::test/s-operators', <<'__b44e530694eef2dad1b9fac8a155e9d4');
 Tests for unary/binary operator translation.
 
 caterwaul.clone('std seq continuation')(function () {
@@ -1645,9 +1647,14 @@ caterwaul.clone('std seq continuation')(function () {
 
   fig('3 + 4') == 7;
   fig('3 + 4 + 5') == 12;
+  fig('3 * 4 + 5') == 27;
+
+  fig('4 / 4') == 1;
+
   fig('print 3', {print: fn[x][x.toString()]}) == '3';
+  fig('f(3, 4)', {f: fn[x, y][x + y]}) == 7;
 })();
-__acd80e6a72c5e2443267820f90aafa4a
+__b44e530694eef2dad1b9fac8a155e9d4
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
