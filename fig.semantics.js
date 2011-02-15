@@ -73,7 +73,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
                                                                   valid_braced_element(t) = t && (t.data === ',' ? valid_kv_pair(t[0]) && valid_braced_element(t[1]) :
                                                                                                   t.data === ':' ? valid_kv_pair(t[0]) : false)] in valid_braced_element(t[0]),
 
-         valid_binary_operators            = seq[~'* / % + - << >> >>> & | ^ && || < > <= >= == != === !== = += -= *= /= %= <<= >>= >>>= &= |= ^='.split(/\s+/) *[[_, true]]].object(),
+         valid_binary_operators            = seq[~'* / % + - << >> >>> & | ^ && || < > <= >= == != === !== ='.split(/\s+/) *[[_, true]]].object(),
          valid_unary_operators             = seq[~'u+ u- u~ u!'.split(/\s+/) *[[_, true]]].object(),
          is_valid_binary_operator(t)       = valid_binary_operators.hasOwnProperty(t.data),
          is_valid_unary_operator(t)        = valid_unary_operators.hasOwnProperty(t.data),
