@@ -1416,7 +1416,7 @@ value of f to have the original definition automatically forward to the new one 
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 __25d389dded35354b8f4a846159140bd0
-meta::sdoc('js::fig.semantics', <<'__220bc4154c9abcd13c937c4986d64ce0');
+meta::sdoc('js::fig.semantics', <<'__f897e0c02efd794b3b8ec55a8eb19d76');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1497,8 +1497,6 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          is_valid_binary_operator(t)       = valid_binary_operators.hasOwnProperty(t.data),
          is_valid_unary_operator(t)        = valid_unary_operators.hasOwnProperty(t.data),
 
-         is_valid_invocation_target(t)     = t.data === '(' || t.data === '[',
-
          // Conversion logic (above is the detection logic):
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),
          constant_literal(t)               = t.is_constant() && t.as('('),
@@ -1506,7 +1504,8 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          comma(t)                          = t.length === 2 && t.data === ',' && t,
          braced_group(t)                   = t.data === '{' && (is_valid_braced_group(t) ? t : qs[_x['{}']()].replace({_x: t[0]})),
          regular_group(t)                  = (t.data === '(' || t.data === '[') && t,
-         direct_join_as_invocation(t)      = t.data === 'join' && is_valid_invocation_target(t[1]) && qs[_x(_y)].replace({_x: t[0], _y: t[1][0]}),
+         direct_join_as_invocation(t)      = t.data === 'join' && (t[1].data === '(' && qs[_x(_y)].replace({_x: t[0], _y: t[1][0]}) ||
+                                                                   t[1].data === '[' && qs[_x[_y]].replace({_x: t[0], _y: t[1][0]})),
          join_to_invocation_promotion(t)   = t.data === 'join' && qs[_x(_y)].replace({_x: t[0], _y: t[1]}),
          binary_operator(t)                = t.length === 2 && (is_valid_binary_operator(t) ? t.as('(') : qs[_l[_op](_r)].replace({_l: t[0], _op: '"#{t.data}"', _r: t[1]})),
          unary_operator(t)                 = t.length === 1 && (is_valid_unary_operator(t)  ? t.as('(') : qs[_l[_op]()].  replace({_l: t[0], _op: '"#{t.data}"'})),
@@ -1519,7 +1518,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          transform_single(t)               = regexp_promotion(t) || constant_literal(t) || dot(t) || comma(t) || braced_group(t) || regular_group(t) || direct_join_as_invocation(t) ||
                                              join_to_invocation_promotion(t) || binary_operator(t) || unary_operator(t) || identifier(t) || t,
          transform(t)                      = t && transform_single(t.map(transform))]});
-__220bc4154c9abcd13c937c4986d64ce0
+__f897e0c02efd794b3b8ec55a8eb19d76
 meta::sdoc('js::test/basic', <<'__4e9f14422911120b83bbdbe80b697f8a');
 Basic tests for the lexer/parser.
 
@@ -1637,7 +1636,7 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
 __45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/s-operators', <<'__3c024dce24b5076ec2809dd35f9fb4d9');
+meta::sdoc('js::test/s-operators', <<'__16d00e900cd770832817002fdb7d803b');
 Tests for unary/binary operator translation.
 
 caterwaul.clone('std seq continuation')(function () {
@@ -1650,6 +1649,8 @@ caterwaul.clone('std seq continuation')(function () {
   fig('3 * 4 + 5') == 27;
 
   fig('4 / 4') == 1;
+
+  fig('4["toString"]') == Number.prototype.toString;
 
   fig('3.toString()') == '3';
   fig('3.141592.toString()') == '3.141592';
@@ -1664,8 +1665,10 @@ caterwaul.clone('std seq continuation')(function () {
   fig('(f x)(g y)', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 17;
   fig('(f x)y', {x: 5, y: 6, f: fn[x][fn[y][x + y]]}) == 11;
   fig('g (f x)y', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 22;
+
+  fig('(x["toString"])()', {x: 5}) == '5';
 })();
-__3c024dce24b5076ec2809dd35f9fb4d9
+__16d00e900cd770832817002fdb7d803b
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];

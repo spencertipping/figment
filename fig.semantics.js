@@ -78,8 +78,6 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          is_valid_binary_operator(t)       = valid_binary_operators.hasOwnProperty(t.data),
          is_valid_unary_operator(t)        = valid_unary_operators.hasOwnProperty(t.data),
 
-         is_valid_invocation_target(t)     = t.data === '(' || t.data === '[',
-
          // Conversion logic (above is the detection logic):
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),
          constant_literal(t)               = t.is_constant() && t.as('('),
@@ -87,7 +85,8 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          comma(t)                          = t.length === 2 && t.data === ',' && t,
          braced_group(t)                   = t.data === '{' && (is_valid_braced_group(t) ? t : qs[_x['{}']()].replace({_x: t[0]})),
          regular_group(t)                  = (t.data === '(' || t.data === '[') && t,
-         direct_join_as_invocation(t)      = t.data === 'join' && is_valid_invocation_target(t[1]) && qs[_x(_y)].replace({_x: t[0], _y: t[1][0]}),
+         direct_join_as_invocation(t)      = t.data === 'join' && (t[1].data === '(' && qs[_x(_y)].replace({_x: t[0], _y: t[1][0]}) ||
+                                                                   t[1].data === '[' && qs[_x[_y]].replace({_x: t[0], _y: t[1][0]})),
          join_to_invocation_promotion(t)   = t.data === 'join' && qs[_x(_y)].replace({_x: t[0], _y: t[1]}),
          binary_operator(t)                = t.length === 2 && (is_valid_binary_operator(t) ? t.as('(') : qs[_l[_op](_r)].replace({_l: t[0], _op: '"#{t.data}"', _r: t[1]})),
          unary_operator(t)                 = t.length === 1 && (is_valid_unary_operator(t)  ? t.as('(') : qs[_l[_op]()].  replace({_l: t[0], _op: '"#{t.data}"'})),
