@@ -1341,7 +1341,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::caterwaul-semantic', <<'__f990300720c23f081a15229cbfa6b430');
+meta::sdoc('js::caterwaul-semantic', <<'__3bfbfd6f169e91923d756ab918306bbd');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1383,8 +1383,23 @@ fly:
 The browser environment is on the one hand trickier, and on the other hand not as bad. It supports synchronous loading through <script> tags; all that needs to be done to handle Figment source
 is to create a driver that recognizes <script> tags whose type is 'text/figment' and stores them as local strings to be evaluated later by the Figment compiler.
 
+Conversion.
+The core Figment conversion is fairly straightforward. The basic idea is, "render exactly as the user typed it if it's syntactically valid in Javascript; otherwise, fudge stuff until it
+works." This with the caveat that everything Figment converts is in expression context, not statement context -- so 'if (x) {y}' will render as a curried function call, not an if-statement.
 
-__f990300720c23f081a15229cbfa6b430
+Here is what happens:
+
+| 1. Identifiers, operators, etc. are preserved modulo a bit of encoding. Because Figment supports identifier characters that aren't allowed in Javascript, it uses dollar-encoding where
+     necessary.
+  2. Regular unary and binary operators (i.e. those supported in Javascript) are converted to Javascript syntax trees and wrapped inside parentheses to make sure precedence is stable.
+  3. Irregular unary and binary operators are converted to method calls. So for instance 'a ++ b' is converted to 'a["++"](b)'.
+  4. Joins are converted in one of two ways. A join against a paren or bracket is converted as an invocation or dereference, and a join onto anything else is converted as a function call. So,
+     for example, 'f(x)' is identity, as is 'f[x]'. But 'f x' becomes f(x), and 'f"foo"' becomes f("foo").
+  5. Braced groups are checked for validity. If each comma-expression contains a colon, then it's converted to a regular Javascript object. Otherwise it's converted into a method call on the
+     braced value: {foo bar bif} becomes foo(bar)(bif)['{}']().
+  6. Dots are preserved and are associative; that is, 'foo.bar.bif' renders as 'foo.bar.bif', even though Javascript reinterprets the dot to associate left.
+  7. 
+__3bfbfd6f169e91923d756ab918306bbd
 meta::sdoc('js::figment', <<'__3b2820b4e9d092b54a3c6615e1bb08d7');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license

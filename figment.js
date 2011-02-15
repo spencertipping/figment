@@ -87,10 +87,10 @@
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
            // At the lowest level an expression is optional; this is required to support empty brackets, e.g. []
-           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('tjoin', _, _0)]]]],
+           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('join', _, _0)]]]],
            tight_prefix  = peg[prefix(operator,                  tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
            tight_binary  = peg[binary(seq(operator, opt(space)), tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
-           loose_join    = peg[binary(space,                     tight_binary, fn[l, op, r][new caterwaul.syntax('ljoin', l, r)])],
+           loose_join    = peg[binary(space,                     tight_binary, fn[l, op, r][new caterwaul.syntax('join', l, r)])],
            loose_prefix  = peg[prefix(seq(operator, space),      loose_join,   fn[   op, r][new caterwaul.syntax(op[0], r)])],
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],

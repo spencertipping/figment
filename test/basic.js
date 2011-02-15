@@ -17,15 +17,15 @@ caterwaul.clone('std')(function () {
   eq('foo?!', qs[foo] /se[_.data = 'foo?!']),
   eq('foo?!\'', qs[foo] /se[_.data = 'foo?!\'']),
   eq('foo\'\'', qs[foo] /se[_.data = 'foo\'\'']),
-  eq('foo\'\'"bar"', qs[_x + "bar"] /se[_[0] = qs[foo] /se[_.data = 'foo\'\''], _.data = 'tjoin']),
+  eq('foo\'\'"bar"', qs[_x + "bar"] /se[_[0] = qs[foo] /se[_.data = 'foo\'\''], _.data = 'join']),
 
-  eq('foo"bar"bif', qs[foo + _x].replace({_x: qs["bar" + bif] /se[_.data = 'tjoin']}) /se[_.data = 'tjoin']),
+  eq('foo"bar"bif', qs[foo + _x].replace({_x: qs["bar" + bif] /se[_.data = 'join']}) /se[_.data = 'join']),
 
   eq('foo+bar', qs[foo + bar]),
   eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
   eq('foo+bar - bif', qs[foo + bar - bif]),
-  eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'ljoin']),
-  eq('"foo"bar', qs["foo" + bar] /se[_.data = 'tjoin']),
+  eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'join']),
+  eq('"foo"bar', qs["foo" + bar] /se[_.data = 'join']),
 
   // Some of these numerical tests will fail on SpiderMonkey-based platforms:
   eq('3', qs[3]),

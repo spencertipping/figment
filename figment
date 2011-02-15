@@ -1322,7 +1322,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__ddcc2c354ae3102776bdaf908ab8deb9');
+meta::sdoc('js::figment', <<'__ce2bd3f043d5b25118ba5c9a60b369cd');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1412,16 +1412,16 @@ value of f to have the original definition automatically forward to the new one 
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
            // At the lowest level an expression is optional; this is required to support empty brackets, e.g. []
-           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('tjoin', _, _0)]]]],
+           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('join', _, _0)]]]],
            tight_prefix  = peg[prefix(operator,                  tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
            tight_binary  = peg[binary(seq(operator, opt(space)), tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
-           loose_join    = peg[binary(space,                     tight_binary, fn[l, op, r][new caterwaul.syntax('ljoin', l, r)])],
+           loose_join    = peg[binary(space,                     tight_binary, fn[l, op, r][new caterwaul.syntax('join', l, r)])],
            loose_prefix  = peg[prefix(seq(operator, space),      loose_join,   fn[   op, r][new caterwaul.syntax(op[0], r)])],
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__ddcc2c354ae3102776bdaf908ab8deb9
-meta::sdoc('js::test/basic', <<'__90089d2fcd3f9d13041e9322d6452103');
+__ce2bd3f043d5b25118ba5c9a60b369cd
+meta::sdoc('js::test/basic', <<'__4e9f14422911120b83bbdbe80b697f8a');
 Basic tests for the lexer/parser.
 
 caterwaul.clone('std')(function () {
@@ -1441,15 +1441,15 @@ caterwaul.clone('std')(function () {
   eq('foo?!', qs[foo] /se[_.data = 'foo?!']),
   eq('foo?!\'', qs[foo] /se[_.data = 'foo?!\'']),
   eq('foo\'\'', qs[foo] /se[_.data = 'foo\'\'']),
-  eq('foo\'\'"bar"', qs[_x + "bar"] /se[_[0] = qs[foo] /se[_.data = 'foo\'\''], _.data = 'tjoin']),
+  eq('foo\'\'"bar"', qs[_x + "bar"] /se[_[0] = qs[foo] /se[_.data = 'foo\'\''], _.data = 'join']),
 
-  eq('foo"bar"bif', qs[foo + _x].replace({_x: qs["bar" + bif] /se[_.data = 'tjoin']}) /se[_.data = 'tjoin']),
+  eq('foo"bar"bif', qs[foo + _x].replace({_x: qs["bar" + bif] /se[_.data = 'join']}) /se[_.data = 'join']),
 
   eq('foo+bar', qs[foo + bar]),
   eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
   eq('foo+bar - bif', qs[foo + bar - bif]),
-  eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'ljoin']),
-  eq('"foo"bar', qs["foo" + bar] /se[_.data = 'tjoin']),
+  eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'join']),
+  eq('"foo"bar', qs["foo" + bar] /se[_.data = 'join']),
 
   // Some of these numerical tests will fail on SpiderMonkey-based platforms:
   eq('3', qs[3]),
@@ -1495,7 +1495,7 @@ caterwaul.clone('std')(function () {
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
-__90089d2fcd3f9d13041e9322d6452103
+__4e9f14422911120b83bbdbe80b697f8a
 meta::sdoc('js::test/comments', <<'__71288dc83331de8eef5a53949b4754d2');
 Tests for line and block comments (lexer tests).
 
