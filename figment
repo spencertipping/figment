@@ -1637,7 +1637,7 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
 __45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/s-operators', <<'__b44e530694eef2dad1b9fac8a155e9d4');
+meta::sdoc('js::test/s-operators', <<'__82e74ca02fe89275cc984a9a9bfc5189');
 Tests for unary/binary operator translation.
 
 caterwaul.clone('std seq continuation')(function () {
@@ -1653,8 +1653,16 @@ caterwaul.clone('std seq continuation')(function () {
 
   fig('print 3', {print: fn[x][x.toString()]}) == '3';
   fig('f(3, 4)', {f: fn[x, y][x + y]}) == 7;
+
+  fig('f g x', {x: 5, f: fn[x][2 * x], g: fn[x][x + 1]}) == 12;
+  fig('(f x) y', {x: 5, y: 6, f: fn[x][fn[y][x + y]]}) == 11;
+  fig('(f x) g y', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 17;
+  fig('(f x) (g y)', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 17;
+  fig('(f x)(g y)', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 17;
+  fig('(f x)y', {x: 5, y: 6, f: fn[x][fn[y][x + y]]}) == 11;
+  fig('g (f x)y', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 22;
 })();
-__b44e530694eef2dad1b9fac8a155e9d4
+__82e74ca02fe89275cc984a9a9bfc5189
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
