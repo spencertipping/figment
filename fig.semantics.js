@@ -82,7 +82,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
 
          // Conversion logic (above is the detection logic):
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),
-         constant_literal(t)               = t.is_constant() && t,
+         constant_literal(t)               = t.is_constant() && t.as('('),
          dot(t)                            = t.length === 2 && t.data === '.' && t,
          comma(t)                          = t.length === 2 && t.data === ',' && t,
          braced_group(t)                   = t.data === '{' && (is_valid_braced_group(t) ? t : qs[_x['{}']()].replace({_x: t[0]})),

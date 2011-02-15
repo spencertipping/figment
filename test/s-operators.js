@@ -11,6 +11,9 @@ caterwaul.clone('std seq continuation')(function () {
 
   fig('4 / 4') == 1;
 
+  fig('3.toString()') == '3';
+  fig('3.141592.toString()') == '3.141592';
+
   fig('print 3', {print: fn[x][x.toString()]}) == '3';
   fig('f(3, 4)', {f: fn[x, y][x + y]}) == 7;
 
