@@ -464,12 +464,12 @@ join "\n", map strip($_), split /\n/, table_display($all ? [@definitions] : [gre
 __acdc3ca5777ab9c7c430d493a7555998
 meta::function('ls-a', 'ls(\'-ad\', @_);');
 meta::function('lss', '# Attribute function::lss');
-meta::function('me', <<'__73c91d8487bf5778d25ba9726c17f235');
+meta::function('me', <<'__6cd1e5a935a648ccbd34aaaaff6352d7');
 # Uses Figment to parse and macroexpand a tree.
 node(['cached_dependency::caterwaul.all.js', 'js::fig.parser', 'js::fig.semantics', <<EOF], @_);
-id::console.log('%s', caterwaul.clone('fig.semantics').macroexpand(caterwaul.clone('fig.parser').parse(process.argv.slice(2).join(' '))));
+id::console.log('%s', caterwaul.clone('std opt seq continuation parser fig.semantics').macroexpand(caterwaul.clone('fig.parser').parse(process.argv.slice(2).join(' '))));
 EOF
-__73c91d8487bf5778d25ba9726c17f235
+__6cd1e5a935a648ccbd34aaaaff6352d7
 meta::function('mv', <<'__52e95180e3c7019116bd798e0da0fdda');
 my ($from, $to) = @_;
 die "'$from' does not exist" unless exists $data{$from};
@@ -1039,6 +1039,19 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
+meta::note('composition', <<'__dee213046d84f8c8cab0a924e7e2f28a');
+Composition.
+Caterwaul needs a mechanism by which macro-sets can be partitioned. The problem is that some syntax trees are inherent to the Figment -> Javascript translation process; these macros don't
+belong in the same stack as the ones that translate Javascript -> Javascript (since they're not idempotent). What makes more sense is for the Figment macros to be applied first, followed by
+the Figment-to-Javascript converter, followed by Javascript macros.
+
+Which ultimately means that Caterwaul needs before() and after():
+
+| caterwaul.before(something)   // something transforms the syntax tree before macroexpansion
+  caterwaul.after(something)    // something transforms the syntax tree after macroexpansion but before compilation
+
+This enables multiple distinct compilation phases.
+__dee213046d84f8c8cab0a924e7e2f28a
 meta::note('q', <<'__55f7cc4240c82be7b3c7a9139305cd88');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
@@ -1416,7 +1429,7 @@ value of f to have the original definition automatically forward to the new one 
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 __b8e94df9f5572acf06ad49509dc7529e
-meta::sdoc('js::fig.semantics', <<'__f55b3ef75df7ad8b1dbd43f640c2c4fa');
+meta::sdoc('js::fig.semantics', <<'__ad19bddf5df7ad8b7644a0b14efaab71');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1483,9 +1496,9 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
   where*[qualifies_for_regexp_promotion(t) = t.data === 'join' && t[0].match(qs[r]) && t[1].is_string(),
 
          operator_bucket(ops)              = l[bucket = seq[~ops.split(/\s+/) *[[_, true]]].object()] in fn[t][bucket.hasOwnProperty(t.data)],
-         is_valid_binary_operator          = operator_bucket('* / % + - << >> >>> & | ^ && || < > <= >= == != === !== ='),
+         is_valid_binary_operator          = operator_bucket('* / % + - << >> >>> & | ^ && || < > <= >= == != === !=='),
          is_valid_unary_operator           = operator_bucket('u+ u- u~ u!'),
-         is_valid_groupless_operator       = operator_bucket(': , .'),
+         is_valid_groupless_operator       = operator_bucket('= : , .'),
 
          // Conversion logic (above is the detection logic):
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),
@@ -1508,7 +1521,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          transform_single(t)               = regexp_promotion(t) || constant_literal(t) || groupless_operator(t) || regular_group(t) || direct_join_as_invocation(t) ||
                                              join_to_invocation_promotion(t) || binary_operator(t) || unary_operator(t) || identifier(t) || t,
          transform(t)                      = t && transform_single(t.map(transform))]});
-__f55b3ef75df7ad8b1dbd43f640c2c4fa
+__ad19bddf5df7ad8b7644a0b14efaab71
 meta::sdoc('js::test/basic', <<'__4e9f14422911120b83bbdbe80b697f8a');
 Basic tests for the lexer/parser.
 
@@ -1584,6 +1597,16 @@ caterwaul.clone('std')(function () {
          el(s, t)    = equal(figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
 __4e9f14422911120b83bbdbe80b697f8a
+meta::sdoc('js::test/caterwaul-std', <<'__6550b3920b22aeebf3d5331c5895b768');
+Caterwaul std integration.
+
+caterwaul.clone('std')(function () {
+  defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
+  var fig = caterwaul.clone('std seq continuation fig.semantics fig.parser');
+
+  fig('x + 1, where[x = 10]') == 11;
+})();
+__6550b3920b22aeebf3d5331c5895b768
 meta::sdoc('js::test/comments', <<'__71288dc83331de8eef5a53949b4754d2');
 Tests for line and block comments (lexer tests).
 
