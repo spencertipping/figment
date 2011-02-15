@@ -54,7 +54,7 @@
 // The parser below uses a forward-definition technique I learned from reading Chris Double's JSParse code (very clever). By setting f(x) to f(x) in an eta-expanded context, we then update the
 // value of f to have the original definition automatically forward to the new one (which works because of lazy scoping).
 
-  caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
+  caterwaul.tconfiguration('std seq continuation parser', 'fig.parser', function () {
     this.field('parse', parse).field('lex', lex).field('decompile', parse),
     where*[parse(s)      = expression(lex(s)),
 

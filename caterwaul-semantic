@@ -340,6 +340,7 @@ my %dependencies = dependencies();
 associate("cached_dependency::$_", LWP::Simple::get($dependencies{$_})) for keys %dependencies;
 __9eb9747ca6d4cdcb7d863ca9ed13f80a
 meta::function('e', 'edit(\'sdoc::js::figment\')');
+meta::function('ec', 'edit(\'sdoc::js::caterwaul-semantic\');');
 meta::function('edit', <<'__c74a5d1c0dbd922acaf1397f89190fce');
 my ($name, %options) = @_;
 my $extension = extension_for($name);
@@ -1060,6 +1061,24 @@ Aesthetics shouldn't be written off completely. It's important to not only allow
 
 This kind of repetition visually reinforces what's going on. Depending on the application it may be appropriate (though the user should always have a way to eliminate it).
 __55f7cc4240c82be7b3c7a9139305cd88
+meta::parent('./figment', <<'__0573f649b84abb74edf068316fc8b2a9');
+function::ct
+function::e
+function::me
+function::parse
+function::t
+function::test
+function::test-parse
+function::testl
+meta::type::fig
+parent::/home/spencertipping/bin/node-base
+parent::development
+sdoc::js::figment
+sdoc::js::test/basic
+sdoc::js::test/comments
+sdoc::js::test/grouping
+vim_highlighter::figment
+__0573f649b84abb74edf068316fc8b2a9
 meta::parent('./sdoc', <<'__2d47795f5a2f946e1655dcc68b32aadd');
 function::lss
 function::sdoc
@@ -1322,7 +1341,51 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__ddcc2c354ae3102776bdaf908ab8deb9');
+meta::sdoc('js::caterwaul-semantic', <<'__f990300720c23f081a15229cbfa6b430');
+Figment -> Caterwaul semantics | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+This module gives you a way to run Figment code from within Caterwaul, with essentially full interoperability. The idea is that Figment is treated as just another surface syntax for Caterwaul,
+so you can write Caterwaul macros against it and have it interoperate with caterwauled Javascript. The advantage, however, is that you get the improved expressiveness that comes with breaking
+out of Javascript's syntax.
+
+As it stands, the module is fairly minimal; if it finds an operator that Javascript doesn't support, it converts it into a method call. It also fully parenthesizes the syntax tree (except for
+commas), which helps to ensure that Figment's precedence is encoded properly into Javascript. Somewhat importantly, certain Javascript operators are impossible to express in Figment. One of
+these is the ternary operator, which is an implicit group. So, rather than writing x ? y : z, you write x ? y z in Figment (with appropriate grouping).
+
+Like Caterwaul code, Figment has access to the macroexpander and has a full compile-time evaluation mechanism. This means that you can write new macros from inside Figment. (I wasn't going to
+go to the trouble of writing a whole new language without having a good macro mechanism for it, after all...) The internals of this work about like they do for Caterwaul. Basically, when a
+compiler directive is encountered Caterwaul suspends macroexpansion briefly, compiles the segment with the current macro set, and executes the code. A reference to the result is dropped into
+the compiled code.
+
+Configuration.
+Regular Caterwaul configurations and Figment configurations coexist in the macroexpansion layer, producing one implicitly composed compilation phase into Javascript. This imposes some
+interesting requirements, naturally. The most noticeable one is that the Figment transformations have to happen before the Caterwaul libraries are processed, which means that the caterwaul
+configurations for Figment must come /after/ the ones for caterwaul modules (well, after the caterwaul macro-defining modules anyway).
+
+So basically, here's how to get a valid Figment compiler:
+
+| var caterwaul_libs = 'std seq continuation parser';
+  var figment_libs   = 'fig.std fig.html';      // Making these up
+  var fig = caterwaul.clone(caterwaul_libs, 'figment', figment_libs);
+
+In this case, the Figment libraries are written in Figment, not in Caterwaul. The reason is a good one: once you configure a Caterwaul function with the 'figment' configuration, it compiles
+only Figment source, not Javascript. By extension, this means that Figment configurations are strings (!) transformed by the 'figment' configuration. So to define a Figment library:
+
+| caterwaul.tconfiguration('figment', 'fig.std', 'figment_code');
+
+As far as I know there is no particularly palatable way to embed arbitrary multiline strings into Javascript code. What probably makes sense is to load Figment files, compiling them on the
+fly:
+
+| caterwaul.tconfiguration('figment', 'fig.std', require('fs').readFileSync('std.fig', 'utf8'));
+
+The browser environment is on the one hand trickier, and on the other hand not as bad. It supports synchronous loading through <script> tags; all that needs to be done to handle Figment source
+is to create a driver that recognizes <script> tags whose type is 'text/figment' and stores them as local strings to be evaluated later by the Figment compiler.
+
+
+__f990300720c23f081a15229cbfa6b430
+meta::sdoc('js::figment', <<'__3b2820b4e9d092b54a3c6615e1bb08d7');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1379,7 +1442,7 @@ Some people will complain about the fact that comments have to start with a capi
 The parser below uses a forward-definition technique I learned from reading Chris Double's JSParse code (very clever). By setting f(x) to f(x) in an eta-expanded context, we then update the
 value of f to have the original definition automatically forward to the new one (which works because of lazy scoping).
 
-  caterwaul.tconfiguration('std seq continuation parser', 'fig.parser', function () {
+  caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
     this.field('parse', parse).field('lex', lex).field('decompile', parse),
     where*[parse(s)      = expression(lex(s)),
 
@@ -1420,8 +1483,8 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__ddcc2c354ae3102776bdaf908ab8deb9
-meta::sdoc('js::test/basic', <<'__90089d2fcd3f9d13041e9322d6452103');
+__3b2820b4e9d092b54a3c6615e1bb08d7
+meta::sdoc('js::test/basic', <<'__ffb17c0142cc961dfbae5105db5e89a1');
 Basic tests for the lexer/parser.
 
 caterwaul.clone('std')(function () {
@@ -1491,12 +1554,12 @@ caterwaul.clone('std')(function () {
 
   eq('foo^^%bar', qs[foo + bar] /se[_.data = '^^%']),
   where*[count       = 0,
-         figment     = caterwaul.clone('fig.parser'),
+         figment     = caterwaul.clone('figment'),
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
-__90089d2fcd3f9d13041e9322d6452103
-meta::sdoc('js::test/comments', <<'__71288dc83331de8eef5a53949b4754d2');
+__ffb17c0142cc961dfbae5105db5e89a1
+meta::sdoc('js::test/comments', <<'__c8203a1bf18b346fa2b061820b09aa09');
 Tests for line and block comments (lexer tests).
 
 caterwaul.clone('std seq continuation')(function () {
@@ -1515,11 +1578,11 @@ caterwaul.clone('std seq continuation')(function () {
   eq('foo- Bar bif\nbaz', 'foo baz'),
   eq('foo3/ Bar\n\nBaz', 'foo3 '),
 
-  where*[figment     = caterwaul.clone('fig.parser'),
+  where*[figment     = caterwaul.clone('figment'),
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
-__71288dc83331de8eef5a53949b4754d2
-meta::sdoc('js::test/grouping', <<'__45cf571ab7967899a03fe6b23c2bc837');
+__c8203a1bf18b346fa2b061820b09aa09
+meta::sdoc('js::test/grouping', <<'__b5d966b1ee8822aa511ed11672ef0078');
 Grouping construct tests.
 
 caterwaul.clone('std seq continuation')(function () {
@@ -1534,10 +1597,10 @@ caterwaul.clone('std seq continuation')(function () {
   eq('([[[[foo]]]])', qse[qg[[[[[foo]]]]]]),
   eq('([([(foo)])])', qse[qg[[qg[[qg[foo]]]]]]),
 
-  where*[figment     = caterwaul.clone('fig.parser'),
+  where*[figment     = caterwaul.clone('figment'),
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
-__45cf571ab7967899a03fe6b23c2bc837
+__b5d966b1ee8822aa511ed11672ef0078
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];

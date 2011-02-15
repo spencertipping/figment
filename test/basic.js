@@ -67,7 +67,7 @@ caterwaul.clone('std')(function () {
 
   eq('foo^^%bar', qs[foo + bar] /se[_.data = '^^%']),
   where*[count       = 0,
-         figment     = caterwaul.clone('figment'),
+         figment     = caterwaul.clone('fig.parser'),
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
