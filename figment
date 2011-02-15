@@ -1636,7 +1636,7 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
 __45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/s-operators', <<'__ba0a9bd6b5fa9eea9ed07ca46b845b36');
+meta::sdoc('js::test/s-operators', <<'__3c29d2758bc5d7bd0622680df2494d6b');
 Tests for unary/binary operator translation.
 
 caterwaul.clone('std seq continuation')(function () {
@@ -1670,8 +1670,12 @@ caterwaul.clone('std seq continuation')(function () {
 
   fig('x >>= 7', {x: {'>>=': fn[x][6 + x]}}) == 13;
   fig('x :: 8', {x: {'::': fn[x][6 + x]}}) == 14;
+  fig('x =bif 9', {x: {'=bif': fn[x][6 + x]}}) == 15;
+  fig('x? =bif 10', {'x$q': {'=bif': fn[x][6 + x]}}) == 16;
+  fig('x! =bif 11', {'x$bang': {'=bif': fn[x][6 + x]}}) == 17;
+  fig('x!=bif 12', {'x$bang': {'=bif': fn[x][6 + x]}}) == 18;
 })();
-__ba0a9bd6b5fa9eea9ed07ca46b845b36
+__3c29d2758bc5d7bd0622680df2494d6b
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
