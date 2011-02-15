@@ -1322,7 +1322,7 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
-meta::sdoc('js::figment', <<'__8d8572e413ced8c1d816333323f3c407');
+meta::sdoc('js::figment', <<'__3b2820b4e9d092b54a3c6615e1bb08d7');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1380,7 +1380,7 @@ The parser below uses a forward-definition technique I learned from reading Chri
 value of f to have the original definition automatically forward to the new one (which works because of lazy scoping).
 
   caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
-    this.figment = this.global().clone().field('decompile', parse).field('parse', parse).field('lex', lex),
+    this.field('parse', parse).field('lex', lex).field('decompile', parse),
     where*[parse(s)      = expression(lex(s)),
 
            lex           = l*[literate     = peg[c(/[A-Z\|](?:\n?[^\n]+)*/, 1) >> fn_['']],
@@ -1420,11 +1420,11 @@ value of f to have the original definition automatically forward to the new one 
            loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
-__8d8572e413ced8c1d816333323f3c407
-meta::sdoc('js::test/basic', <<'__6ba986d8b0ecf6cc4c5427465870c8fd');
+__3b2820b4e9d092b54a3c6615e1bb08d7
+meta::sdoc('js::test/basic', <<'__ffb17c0142cc961dfbae5105db5e89a1');
 Basic tests for the lexer/parser.
 
-caterwaul.clone('std figment')(function () {
+caterwaul.clone('std')(function () {
   el('foo', 'foo'),
 
   eq('foo', qs[foo]),
@@ -1491,14 +1491,15 @@ caterwaul.clone('std figment')(function () {
 
   eq('foo^^%bar', qs[foo + bar] /se[_.data = '^^%']),
   where*[count       = 0,
+         figment     = caterwaul.clone('figment'),
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
-         el(s, t)    = equal(caterwaul.figment.lex(s), t),
-         eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).toString(), t.toString())]})();
-__6ba986d8b0ecf6cc4c5427465870c8fd
-meta::sdoc('js::test/comments', <<'__89d0d390fde258c76a8bd4c24a398958');
+         el(s, t)    = equal(figment.lex(s), t),
+         eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
+__ffb17c0142cc961dfbae5105db5e89a1
+meta::sdoc('js::test/comments', <<'__c8203a1bf18b346fa2b061820b09aa09');
 Tests for line and block comments (lexer tests).
 
-caterwaul.clone('std seq continuation figment')(function () {
+caterwaul.clone('std seq continuation')(function () {
   eq('foo', 'foo'),
   eq('foo - Bar', 'foo  '),
   eq('-foo - Bar', '-foo  '),
@@ -1514,13 +1515,14 @@ caterwaul.clone('std seq continuation figment')(function () {
   eq('foo- Bar bif\nbaz', 'foo baz'),
   eq('foo3/ Bar\n\nBaz', 'foo3 '),
 
-  where*[equal(a, b) = a === b || null['#{a} should === #{b}'],
-         eq(s, t)    = equal(caterwaul.figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
-__89d0d390fde258c76a8bd4c24a398958
-meta::sdoc('js::test/grouping', <<'__ba61b23f6d831c72d367e59fb6707a13');
+  where*[figment     = caterwaul.clone('figment'),
+         equal(a, b) = a === b || null['#{a} should === #{b}'],
+         eq(s, t)    = equal(figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
+__c8203a1bf18b346fa2b061820b09aa09
+meta::sdoc('js::test/grouping', <<'__b5d966b1ee8822aa511ed11672ef0078');
 Grouping construct tests.
 
-caterwaul.clone('std seq continuation figment')(function () {
+caterwaul.clone('std seq continuation')(function () {
   eq('(foo)', qse[qg[foo]]),
   eq('[foo]', qs[[foo]]),
   eq('{foo:bar}', qs[{foo:bar}]),
@@ -1532,9 +1534,10 @@ caterwaul.clone('std seq continuation figment')(function () {
   eq('([[[[foo]]]])', qse[qg[[[[[foo]]]]]]),
   eq('([([(foo)])])', qse[qg[[qg[[qg[foo]]]]]]),
 
-  where*[equal(a, b) = a === b || null['#{a} should === #{b}'],
-         eq(s, t)    = equal(qs[_x].replace({_x: caterwaul.figment.parse(s)}).serialize(), t.serialize())]})();
-__ba61b23f6d831c72d367e59fb6707a13
+  where*[figment     = caterwaul.clone('figment'),
+         equal(a, b) = a === b || null['#{a} should === #{b}'],
+         eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
+__b5d966b1ee8822aa511ed11672ef0078
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];

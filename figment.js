@@ -55,7 +55,7 @@
 // value of f to have the original definition automatically forward to the new one (which works because of lazy scoping).
 
   caterwaul.tconfiguration('std seq continuation parser', 'figment', function () {
-    this.figment = this.global().clone().field('decompile', parse).field('parse', parse).field('lex', lex),
+    this.field('parse', parse).field('lex', lex).field('decompile', parse),
     where*[parse(s)      = expression(lex(s)),
 
            lex           = l*[literate     = peg[c(/[A-Z\|](?:\n?[^\n]+)*/, 1) >> fn_['']],
