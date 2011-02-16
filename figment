@@ -1052,19 +1052,6 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
-meta::note('composition', <<'__dee213046d84f8c8cab0a924e7e2f28a');
-Composition.
-Caterwaul needs a mechanism by which macro-sets can be partitioned. The problem is that some syntax trees are inherent to the Figment -> Javascript translation process; these macros don't
-belong in the same stack as the ones that translate Javascript -> Javascript (since they're not idempotent). What makes more sense is for the Figment macros to be applied first, followed by
-the Figment-to-Javascript converter, followed by Javascript macros.
-
-Which ultimately means that Caterwaul needs before() and after():
-
-| caterwaul.before(something)   // something transforms the syntax tree before macroexpansion
-  caterwaul.after(something)    // something transforms the syntax tree after macroexpansion but before compilation
-
-This enables multiple distinct compilation phases.
-__dee213046d84f8c8cab0a924e7e2f28a
 meta::note('q', <<'__55f7cc4240c82be7b3c7a9139305cd88');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
