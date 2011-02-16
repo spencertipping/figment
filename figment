@@ -429,16 +429,29 @@ terminal::error($@) if $@;
 reload();
 verify();
 __0bddb2edf7d13e60bf47e7bce8c8c011
-meta::function('loc', <<'__dfe41cc08b7be0baa9a396df86e9b8e2');
+meta::function('loc', <<'__ce427fbd35d560bbcc08f542f56a306a');
 # Counts SLOC, whitespace, and total LOC in the codebase.
-my @lines      = map split(/\n/, file::read($_)), dependencies(), main();
-my $comments   = grep /^\s*\/\//, @lines;
-my $whitespace = grep /^\s*$/, @lines;
-my $source     = @lines - $comments - $whitespace;
+my $criteria    = join '|', @_;
+my @attributes  = grep s/^sdoc:://, select_keys('--criteria' => $criteria);
+my $tcomments   = 0;
+my $twhitespace = 0;
+my $tsource     = 0;
 
-print "(Figures below include library code)\n";
-print "$source SLOC, $whitespace whitespace lines, $comments comment lines\n";
-__dfe41cc08b7be0baa9a396df86e9b8e2
+my $line = sub {
+  my ($source, $whitespace, $comments, $name) = @_;
+  sprintf "%5d total, %4d SLOC, %5d[%4d%%] whitespace, %5d[%4d%%] comment [%s]",
+          $source + $whitespace + $comments, $source, $whitespace, int($whitespace / $source * 100), $comments, int($comments / $source * 100), $name};
+
+my $loc = sub {
+  my @lines    = map split(/\n/, $_), retrieve($_[0]);
+  $tcomments   += (my $comments   = grep /^\s*\/\// || /^\s*#/, @lines);
+  $twhitespace += (my $whitespace = grep /^\s*$/, @lines);
+  $tsource     += (my $source     = @lines - $comments - $whitespace);
+  &$line($source, $whitespace, $comments, $_[0])};
+
+terminal::info(map &$loc($_), @attributes);
+terminal::info(&$line($tsource, $twhitespace, $tcomments, 'total'));
+__ce427fbd35d560bbcc08f542f56a306a
 meta::function('lock', 'chmod_self(sub {$_[0] & 0555});');
 meta::function('ls', <<'__acdc3ca5777ab9c7c430d493a7555998');
 my ($options, @criteria) = separate_options(@_);
@@ -1021,7 +1034,7 @@ terminal::warning("$@ when running with_exported()") if $@;
 unlink $name;
 $result;
 __fc4f32c46d95c6deed0414364d1c7410
-meta::library('terminal', <<'__0ec2ca45ce7b9b56c05c9b284a7ee78a');
+meta::library('terminal', <<'__c52308d05ebb4ff61c5fc36e6d9c7a8a');
 # Functions for nice-looking terminal output.
 package terminal;
 
@@ -1030,11 +1043,11 @@ my $process = ::name();
 sub message {print STDERR "[$_[0]] $_[1]\n"}
 sub color {
   my ($name, $color) = @_;
-  *{"terminal::$name"} = sub {chomp $_, print STDERR "\033[1;30m$process(\033[1;${color}m$name\033[1;30m)\033[0;0m $_\n" for @_}}
+  *{"terminal::$name"} = sub {chomp($_), print STDERR "\033[1;30m$process(\033[1;${color}m$name\033[1;30m)\033[0;0m $_\n" for map join('', $_), @_}}
 
 my %preloaded = (info => 32, progress => 32, state => 34, debug => 34, warning => 33, error => 31);
 color $_, $preloaded{$_} for keys %preloaded;
-__0ec2ca45ce7b9b56c05c9b284a7ee78a
+__c52308d05ebb4ff61c5fc36e6d9c7a8a
 meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
