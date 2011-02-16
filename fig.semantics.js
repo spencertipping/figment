@@ -64,9 +64,9 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
   where*[qualifies_for_regexp_promotion(t) = t.data === 'join' && t[0].match(qs[r]) && t[1].is_string(),
 
          operator_bucket(ops)              = l[bucket = seq[~ops.split(/\s+/) *[[_, true]]].object()] in fn[t][bucket.hasOwnProperty(t.data)],
-         is_valid_binary_operator          = operator_bucket('* / % + - << >> >>> & | ^ && || < > <= >= == != === !== ='),
+         is_valid_binary_operator          = operator_bucket('* / % + - << >> >>> & | ^ && || < > <= >= == != === !=='),
          is_valid_unary_operator           = operator_bucket('u+ u- u~ u!'),
-         is_valid_groupless_operator       = operator_bucket(': , .'),
+         is_valid_groupless_operator       = operator_bucket('= : , .'),
 
          // Conversion logic (above is the detection logic):
          regexp_promotion(t)               = qualifies_for_regexp_promotion(t) && new caterwaul.syntax(t[1].data.replace(/\//g, '\\$1') /re['/#{_.substring(1, _.length - 1)}/']),

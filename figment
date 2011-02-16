@@ -1597,16 +1597,18 @@ caterwaul.clone('std')(function () {
          el(s, t)    = equal(figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
 __4e9f14422911120b83bbdbe80b697f8a
-meta::sdoc('js::test/caterwaul-std', <<'__6550b3920b22aeebf3d5331c5895b768');
+meta::sdoc('js::test/caterwaul-std', <<'__95273b3f8069070ba081e4a6e4e56541');
 Caterwaul std integration.
 
 caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
-  var fig = caterwaul.clone('std seq continuation fig.semantics fig.parser');
+  var fig = caterwaul.clone('fig.semantics fig.parser').after(caterwaul.clone('std seq continuation'));
 
   fig('x + 1, where[x = 10]') == 11;
+  fig('f(_) / cps[_ + 3]', {f: fn[g][g(9)]}) == 12;
+  fig('l[f x = x + 10] [f 5]') == 15;
 })();
-__6550b3920b22aeebf3d5331c5895b768
+__95273b3f8069070ba081e4a6e4e56541
 meta::sdoc('js::test/comments', <<'__71288dc83331de8eef5a53949b4754d2');
 Tests for line and block comments (lexer tests).
 
