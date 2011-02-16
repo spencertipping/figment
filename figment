@@ -351,6 +351,7 @@ save();
 '';
 __c74a5d1c0dbd922acaf1397f89190fce
 meta::function('enable', 'chmod_self(sub {$_[0] | $_[0] >> 2});');
+meta::function('er', 'edit(\'sdoc::js::fig.require\')');
 meta::function('es', 'edit(\'sdoc::js::fig.semantics\');');
 meta::function('export', <<'__388e0cc60507443cb1c0cc3e2658cfef');
 # Exports data into a text file.
@@ -1429,6 +1430,14 @@ value of f to have the original definition automatically forward to the new one 
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 __b8e94df9f5572acf06ad49509dc7529e
+meta::sdoc('js::fig.require', <<'__45c80dabdf3f9f4a5a81f7d798bceb42');
+Figment require() function | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+This module enables dynamic Figment loading and translation by adding a require() method to Caterwaul. The same function can be used on either the client or the server; require() detects the
+environment and behaves accordingly.
+__45c80dabdf3f9f4a5a81f7d798bceb42
 meta::sdoc('js::fig.semantics', <<'__ad19bddf5df7ad8b7644a0b14efaab71');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
