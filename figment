@@ -1331,6 +1331,16 @@ meta::retriever('sdocp', <<'__fef74cd94fa8761618662802f0bfc171');
 my $attribute = attribute($_[0]);
 exists $data{"sdoc::$attribute"} ? sdocp("sdoc::$attribute") : undef;
 __fef74cd94fa8761618662802f0bfc171
+meta::sdoc('js::fig', <<'__d08e54ffbda4f3a48271687a355a9aab');
+Unified Figment configuration | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+This configuration transforms a regular caterwaul function into a Figment compiler, complete with some default semantics and a require() fnuction for platform-specific inclusion of external
+code. See the dependent files fig.parser.js, fig.semantics.js, and fig.require.js for more details.
+
+  caterwaul.configuration('fig', function () {this.configure('fig.semantics fig.parser fig.require')});
+__d08e54ffbda4f3a48271687a355a9aab
 meta::sdoc('js::fig.parser', <<'__b8e94df9f5572acf06ad49509dc7529e');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -1430,7 +1440,7 @@ value of f to have the original definition automatically forward to the new one 
            commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 __b8e94df9f5572acf06ad49509dc7529e
-meta::sdoc('js::fig.require', <<'__3c03d6d2f54dda28e0940103d43b8d85');
+meta::sdoc('js::fig.require', <<'__bad121ced0a80be64944641cdc9223af');
 Figment require() function | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -1449,14 +1459,40 @@ There is no need to use tconfiguration() because the requiring caterwaul functio
 
 Server-side require.
 Because requiring stuff is a fundamentally synchronous thing to do (and generally not done after app initialization), blocking methods are used to load things. The only mechanism for loading
-things is the filesystem; loading files over HTTP isn't supported yet. The below configuration is written out in plain Javascript so that node.js's require() is visible.
+things is the filesystem; loading files over HTTP isn't supported yet. Also, because I'm being lazy, files are loaded synchronously rather than using CPS.
 
-  caterwaul.configuration('fig.require.nodejs', function () {
-    this.namespace('require_drivers').nodejs = function (file) {return require('fs').readFileSync(file, 'utf8')}}).
+  caterwaul.tconfiguration('std seq continuation', 'fig.require.nodejs', (function (require) {return fn_[
+    this.method('figment_require', fn[files, cc][cc(seq[~files.split(/\s+/) *[require('fs').readFileSync(_, 'utf8')]].slice())])]})(typeof require === 'undefined' || require)).
 
 Client-side require.
-This is a bit more challenging because it involves AJAX. Basically we load the script using an AJAX request, then evaluate it as soon as the script comes back.
-__3c03d6d2f54dda28e0940103d43b8d85
+This is a bit more challenging because it involves AJAX. Basically we load the script using an AJAX request, then evaluate it as soon as the script comes back. To do this sensibly we need to
+have a callback that executes once all of the code is loaded. For example:
+
+| caterwaul.clone('fig.require').require('/path/to/source1.fig /path/to/source2.fig', function () {
+    // In here, 'this' is set to a configured clone of the original requiring function.
+    this.configure('source1-module');
+    this.module1.do_something();
+  });
+
+The callback function isn't run through caterwaul. This gives it the ability to refer to closure state.
+
+  tconfiguration('std seq continuation', 'fig.require.ajax', function () {
+    this.method('figment_require', fn[files, cc][
+      l*[file_list = seq[~files.split(/\s+/)], contents = {}, requests_left = file_list.size(), receive(filename)(data) = --requests_left /se[contents[filename] = data, _ || got_everything()]
+         got_everything() = cc(seq[file_list *[contents[_]]])] in
+      seq[file_list *![get(_, receive(_))]]]),
+
+    where*[create_xhr()      = window.XMLHttpRequest /re[_ ? new _() : new window.ActiveXObject('Microsoft.XMLHTTP')],
+           get(url, success) = create_xhr() /se[_.open('GET', url, true), _.onreadystatechange() = _.readyState === 4 && success(_.responseText)]]}).
+
+Require shell.
+This part manages the logic of configuring a caterwaul function once the source is retrieved. There isn't much involved; we just end up invoking a callback. The only thing is that your
+caterwaul function should already be configured as a figment parser for this to work. (The 'fig' configuration takes care of this for you.)
+
+  tconfiguration('std seq continuation', 'fig.require', function () {
+    this.configure(typeof window === 'undefined' ? 'fig.require.nodejs' : 'fig.require.ajax').
+    method('require', fn[modules, cc][this.figment_require(modules, _) /cpb.ms[cc && cc.call(this /se[seq[~ms *![cc(_)]]])]])});
+__bad121ced0a80be64944641cdc9223af
 meta::sdoc('js::fig.semantics', <<'__ad19bddf5df7ad8b7644a0b14efaab71');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
