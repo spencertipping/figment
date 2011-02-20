@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+  <title>Figment client library</title>
+  <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.js'></script>
+  <script src='http://spencertipping.com/caterwaul/caterwaul.all.min.js'></script>
+  <script src='http://spencertipping.com/montenegro/montenegro.client.js'></script>
+  <script src='fig.all.js'></script>
+  <script>
+    var log = caterwaul.clone('std seq continuation montenegro')(function (x) {
+      $('body').append(html[div.entry(x)]);
+    });
+
+    $(function () {
+      caterwaul.clone('fig').require('helloworld.fig', function () {
+        console.log('Callback invoked');
+        console.log(this.hello_world);
+        log(this.hello_world);
+      });
+    });
+  </script>
+  </head>
+  <body>
+  <p>There should be output below.</p>
+  </body>
+</html>
