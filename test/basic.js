@@ -56,6 +56,8 @@ caterwaul.clone('std')(function () {
   eq('foo, bar+bif', qs[foo, bar + bif]),
   eq('foo, bar + bif', qs[foo, bar + bif]),
 
+  eq('this.hello_world = \'hello world!\'', qs[this.hello_world = 'hello world!']),
+
   eq('+bif', qs[+bif] /se[_.data = '+']),
   eq('-%%!$`bif', qs[+bif] /se[_.data = '-%%!$`']),
   eq('bar.bif', qs[bar.bif]),

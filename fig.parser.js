@@ -58,9 +58,9 @@
     this.field('parse', parse).field('lex', lex).field('decompile', parse),
     where*[parse(s)      = expression(lex(s)),
 
-           lex           = l*[literate     = peg[c(/[A-Z\|](?:\n?[^\n]+)*/, 1) >> fn_['']],
-                              paragraph    = peg[c(/(?:\n?[^\n]+)*/, 1) >> fn[xs][xs[0]]],
-                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs.join('')])[0] >> fn[xs][seq[~xs %[_]].join('\n')]],
+           lex           = l*[literate     = peg[c(/[A-Z\|][^\n]*(?:\n[^\n]+)*/, 1) >> fn_['']],
+                              paragraph    = peg[c(/[^\n]*(?:\n[^\n]+)*/, 1) >> fn[xs][xs[0]]],
+                              paragraphs   = peg[(([c(/\n\n+/, 2)] >> fn_['']) % (literate / paragraph) >> fn[xs][xs[1]])[0] >> fn[xs][seq[~xs %[_]].join('\n')]],
                               line_comment = peg[c(/[-\/]\s*/, 1) % c(/[A-Z][^\n]*/, 1) % [c('\n')] >> fn_[' ']],
                               code         = peg[(line_comment / c(['-', '/']) / (c(/[^-\/]+/, 1) >> fn[xs][xs[0]]))[1] >> fn[xs][xs.join('')]]] in
                            fn[s][code(paragraphs(s))],
@@ -71,12 +71,14 @@
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs[0] + xs[1].data]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
+           // At the lowest level an expression is optional; this is required to support empty brackets, e.g. []
            group         = l*[grouped_by(open, close) = peg[c(open) % [expression] % c(close) >> fn[xs][xs[1] ? new caterwaul.syntax(open, xs[1]) : new caterwaul.syntax(open)]]] in
                            peg[grouped_by('(', ')') / grouped_by('[', ']') / grouped_by('{', '}')],
 
            atom          = l*[quoted_operator = peg[c('_') % operator >> fn[xs][new caterwaul.syntax(xs[0] + xs[1])]],
-                              number_options  = peg[c(/\d+\.\d+([eE][-+]?\d*)?/, 3) / c(/\d+/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
-                              string_options  = peg[(c(/'([^'\\]|\\.)*/, 1) % c("'")) / (c(/"([^"\\]|\\.)*/, 1) % c('"')) >> fn[xs][new caterwaul.syntax(xs[0][0] + xs[1])]]] in
+                              number_options  = peg[(c(/\d+/, 1) % c('.') % c(/\d+(?:[eE][-+]?\d*)?/, 1) >> fn[xs][new caterwaul.syntax(xs[0][0] + xs[1] + xs[2][0])]) /
+                                                    (c(/\d+/, 1) >> fn[xs][new caterwaul.syntax(xs[0])])],
+                              string_options  = peg[(c(/'(?:[^'\\]|\\.?)*/, 1) % c("'")) / (c(/"(?:[^"\\]|\\.?)*/, 1) % c('"')) >> fn[xs][new caterwaul.syntax(xs[0][0] + xs[1])]]] in
                            peg[quoted_operator / number_options / string_options / identifier / group],
 
            space         = peg[c(/\s+/, 1)],
@@ -86,13 +88,12 @@
            binary(op, l, inductive, base) = l*[p(x) = p(x), p = peg[l % [op % p] >> fn[xs][xs[1] ? inductive(xs[0], xs[1][0], xs[1][1]) : base ? base(xs[0]) : xs[0]]]] in p,
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
-           // At the lowest level an expression is optional; this is required to support empty brackets, e.g. []
            tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('join', _, _0)]]]],
-           tight_prefix  = peg[prefix(operator,                  tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
-           tight_binary  = peg[binary(seq(operator, opt(space)), tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
-           loose_join    = peg[binary(space,                     tight_binary, fn[l, op, r][new caterwaul.syntax('join', l, r)])],
-           loose_prefix  = peg[prefix(seq(operator, space),      loose_join,   fn[   op, r][new caterwaul.syntax(op[0], r)])],
-           loose_binary  = peg[binary(spaced(operator),          loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
-           commas        = peg[binary(c(/\s*,\s*/, 1),           loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
+           tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
+           tight_binary  = peg[binary(seq(operator, opt(space)),     tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
+           loose_join    = peg[binary(space,                         tight_binary, fn[l, op, r][new caterwaul.syntax('join', l, r)])],
+           loose_prefix  = peg[prefix(seq(operator, space),          loose_join,   fn[   op, r][new caterwaul.syntax(op[0], r)])],
+           loose_binary  = peg[binary(spaced(operator),              loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
+           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
            expression    = commas]});
 // Generated by SDoc 
