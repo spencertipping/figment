@@ -8,7 +8,7 @@ caterwaul.clone('std seq continuation')(function () {
 
   fig('3 + 4') == 7;
   fig('3 + 4 + 5') == 12;
-  fig('3 * 4 + 5') == 27;
+  fig('3 * 4 + 5') == 17;
 
   fig('4 / 4') == 1;
 

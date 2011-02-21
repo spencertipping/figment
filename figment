@@ -3368,7 +3368,7 @@ code. See the dependent files fig.parser.js, fig.semantics.js, and fig.require.j
 
   caterwaul.configuration('fig', function () {this.configure('fig.require fig.semantics fig.parser')});
 __cf8468f7a5e455b97de1718b4c5ad68c
-meta::sdoc('js::fig.parser', <<'__07a4c66ab92b58750d420915a1d31aa4');
+meta::sdoc('js::fig.parser', <<'__43fcaf2300aca0b52cdd18629c4670db');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3502,8 +3502,8 @@ value of f to have the original definition automatically forward to the new one 
            unary_tree(op, r, t)     = new caterwaul.syntax(op, r)    /se[_.is_tight = t],
 
            // Precedence rewriting
-           cons_binary(op, l, r, t) = r.constructor === caterwaul.syntax && r.data !== 'join' && r.is_tight === t && r.length === 2 && precedence_of(r.data) > precedence_of(op) ?
-                                      binary_tree(r.data, binary_tree(op, l, r.l, t), r.r, t) : binary_tree(op, l, r, t),
+           cons_binary(op, l, r, t) = r.data !== 'join' && r.is_tight === t && r.length === 2 && precedence_of(r.data) > precedence_of(op) ?
+                                      binary_tree(r.data, binary_tree(op, l, r[0], t), r[1], t) : binary_tree(op, l, r, t),
 
            tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![binary_tree('join', _, _0, true)]]]],
            tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][unary_tree(op, r, true)])],
@@ -3511,9 +3511,9 @@ value of f to have the original definition automatically forward to the new one 
            loose_join    = peg[binary(space,                         tight_binary, fn[l, op, r][cons_binary('join', l, r, false)])],
            loose_prefix  = peg[prefix(seq(operator, space),          loose_join,   fn[   op, r][unary_tree(op[0], r, false)])],
            loose_binary  = peg[binary(spaced(operator),              loose_prefix, fn[l, op, r][cons_binary(op, l, r, false)])],
-           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][binary_tree(',', l, r)])],
+           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][binary_tree(',', l, r, false)])],
            expression    = commas]});
-__07a4c66ab92b58750d420915a1d31aa4
+__43fcaf2300aca0b52cdd18629c4670db
 meta::sdoc('js::fig.require', <<'__03c395a5ce6398c3c72d6407902560a2');
 Figment require() function | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -3861,7 +3861,7 @@ caterwaul.clone('std')(function () {
   fig('(("foo3"))') == 'foo3';
 })();
 __49ac78152defd9f385dab67ff4c36680
-meta::sdoc('js::test/s-operators', <<'__46d41e89c07133c55d51d712c871c71d');
+meta::sdoc('js::test/s-operators', <<'__eec2ce77154a34a7d6f92dea3c58c06a');
 Tests for unary/binary operator translation.
 
 console.log('starting test s-operators');
@@ -3872,7 +3872,7 @@ caterwaul.clone('std seq continuation')(function () {
 
   fig('3 + 4') == 7;
   fig('3 + 4 + 5') == 12;
-  fig('3 * 4 + 5') == 27;
+  fig('3 * 4 + 5') == 17;
 
   fig('4 / 4') == 1;
 
@@ -3901,7 +3901,7 @@ caterwaul.clone('std seq continuation')(function () {
   fig('x! =bif 11', {'x$bang': {'=bif': fn[x][6 + x]}}) == 17;
   fig('x!=bif 12', {'x$bang': {'=bif': fn[x][6 + x]}}) == 18;
 })();
-__46d41e89c07133c55d51d712c871c71d
+__eec2ce77154a34a7d6f92dea3c58c06a
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];
