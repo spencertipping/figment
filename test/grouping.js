@@ -1,5 +1,6 @@
 // Grouping construct tests.
 
+console.log('starting test grouping');
 caterwaul.clone('std seq continuation')(function () {
   eq('(foo)', qse[qg[foo]]),
   eq('[foo]', qs[[foo]]),

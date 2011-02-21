@@ -1,5 +1,6 @@
 // Tests for unary/binary operator translation.
 
+console.log('starting test s-operators');
 caterwaul.clone('std seq continuation')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
 

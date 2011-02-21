@@ -1,5 +1,6 @@
 // A test for require() within node.js
 
+console.log('starting test node-require');
 var got_called = false;
 var compiler = caterwaul.clone('fig');
 

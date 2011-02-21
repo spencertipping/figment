@@ -3368,7 +3368,7 @@ code. See the dependent files fig.parser.js, fig.semantics.js, and fig.require.j
 
   caterwaul.configuration('fig', function () {this.configure('fig.require fig.semantics fig.parser')});
 __cf8468f7a5e455b97de1718b4c5ad68c
-meta::sdoc('js::fig.parser', <<'__2ef4e48c05076499814eeade7aa1cd9f');
+meta::sdoc('js::fig.parser', <<'__07a4c66ab92b58750d420915a1d31aa4');
 Figment parser | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3380,10 +3380,10 @@ decided to break out of Javascript's syntax and use Caterwaul's loose syntax tre
 Basic elements.
 Figment sees the world similarly to Caterwaul; that is, expressions are joined by infix and prefix operators, or by an implicit join action. (Analogous to 'i;' from a parsing perspective,
 though the meaning is different.) Unlike Caterwaul, syntax trees don't encode preassigned operator precedence or syntactic constructs; it's just a big tree of operators and expressions. The
-grammar rules are basically these (where \w is [A-Za-z0-9_] -- so it's totally fine to begin an identifier with a digit):
+grammar rules are basically these (where \w is [A-Za-z0-9_]):
 
 | operator ::= '=' ident | /[-+\/*&^%$#@!`~:\\|=?<>.;]+/
-  ident    ::= /\w+['?!]*/
+  ident    ::= /[a-z_]\w*['?!]*/
   atom     ::= '_' operator | /\d+/ | /\d*\.\d+([eE][-+]?\d+)?/ | /(['"])([^\1]|\\.)*\1/ | ident
   parens   ::= '(' expression ')'
   brackets ::= '[' expression ']'
@@ -3472,7 +3472,7 @@ value of f to have the original definition automatically forward to the new one 
 
            // Forward definition of expression
            expression(x) = expression(x),
-           identifier    = peg[c(/[A-Za-z0-9_]+['?!]*/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
+           identifier    = peg[c(/[a-z_][A-Za-z0-9_]*['?!]*/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs[0] + xs[1].data]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
@@ -3497,21 +3497,23 @@ value of f to have the original definition automatically forward to the new one 
            precedence_table = l[current = 0] in {} /se.r[seq[~'. */ % +- &|^ :; <> !@# `~\\ ? ='.split(/\s+/) *![seq[~_.split('') *![r[_] = current]], ++current]], r['$'] = 1000],
            precedence_of(op) = /^_/.test(op) ? 999 : seq[~op.split('') *[precedence_table[_]] /[_ + _0]],
 
-           binary(op, l, r, t) = new caterwaul.syntax(op, l, r) /se[_.is_tight = t],
-           unary(op, r, t)     = new caterwaul.syntax(op, r)    /se[_.is_tight = t],
+           // Convenience methods to create annotated syntax nodes
+           binary_tree(op, l, r, t) = new caterwaul.syntax(op, l, r) /se[_.is_tight = t],
+           unary_tree(op, r, t)     = new caterwaul.syntax(op, r)    /se[_.is_tight = t],
 
            // Precedence rewriting
-           cons_binary(op, l, r, t) = r.data !== 'join' && r.t === t && r.length === 2 && predence_of(r.data) > precedence_of(op) ? binary(r.data, binary(op, l, r.l, t), r.r, t) :
-                                                                                                                                    binary(op, l, r, t),
-           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![binary('join', _, _0, true)]]]],
-           tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][unary(op, r, true)])],
+           cons_binary(op, l, r, t) = r.constructor === caterwaul.syntax && r.data !== 'join' && r.is_tight === t && r.length === 2 && precedence_of(r.data) > precedence_of(op) ?
+                                      binary_tree(r.data, binary_tree(op, l, r.l, t), r.r, t) : binary_tree(op, l, r, t),
+
+           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![binary_tree('join', _, _0, true)]]]],
+           tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][unary_tree(op, r, true)])],
            tight_binary  = peg[binary(seq(operator, opt(space)),     tight_prefix, fn[l, op, r][cons_binary(op[0], l, r, true)])],
            loose_join    = peg[binary(space,                         tight_binary, fn[l, op, r][cons_binary('join', l, r, false)])],
-           loose_prefix  = peg[prefix(seq(operator, space),          loose_join,   fn[   op, r][unary(op[0], r, false)])],
+           loose_prefix  = peg[prefix(seq(operator, space),          loose_join,   fn[   op, r][unary_tree(op[0], r, false)])],
            loose_binary  = peg[binary(spaced(operator),              loose_prefix, fn[l, op, r][cons_binary(op, l, r, false)])],
-           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][binary(',', l, r)])],
+           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][binary_tree(',', l, r)])],
            expression    = commas]});
-__2ef4e48c05076499814eeade7aa1cd9f
+__07a4c66ab92b58750d420915a1d31aa4
 meta::sdoc('js::fig.require', <<'__03c395a5ce6398c3c72d6407902560a2');
 Figment require() function | Spencer Tipping
 Licensed under the terms of the MIT source code license
@@ -3659,6 +3661,20 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
                                              join_to_invocation_promotion(t) || binary_operator(t) || unary_operator(t) || identifier(t) || t,
          transform(t)                      = t && transform_single(t.map(transform))]});
 __ad19bddf5df7ad8b7644a0b14efaab71
+meta::sdoc('js::fig.std', <<'__64fbad267f7976d222a7fdfcc025a01c');
+Standard library for Figment | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+Caterwaul's standard library is built around the syntactic patterns required by Javascript. But Figment isn't constrained by the same patterns that Javascript is, so more idiomatic constructs
+can be written. Many of the patterns are still there however.
+
+Quotation.
+This is preserved as-is. I briefly considered using % rather than q, but qs[] is much easier to read than %s[]. Because Firefox can't bork Figment source there is no need for the qg[] macro --
+regular parens are never erased prior to quotation.
+
+TODO
+__64fbad267f7976d222a7fdfcc025a01c
 meta::sdoc('js::minify', <<'__c427ba38be3090426d6ef69c5cabf6b3');
 Minifies a JavaScript file by using the Caterwaul parse/deparse mechanism.
 This won't do identifier packing (which is unsafe in Caterwaul), but it will provide decent minification by removing comments and most whitespace.
@@ -3666,9 +3682,10 @@ This won't do identifier packing (which is unsafe in Caterwaul), but it will pro
 var code = require('fs').readFileSync(process.argv[2], 'utf8');
 require('fs').writeFileSync(process.argv[2].replace(/\.js$/, '.min.js'), caterwaul.parse(code).serialize(), 'utf8');
 __c427ba38be3090426d6ef69c5cabf6b3
-meta::sdoc('js::test/basic', <<'__c4bd7c319197c783fd8c1d6938686fe6');
+meta::sdoc('js::test/basic', <<'__b2fb8318d1f6257de670fd2debc379bf');
 Basic tests for the lexer/parser.
 
+console.log('starting test basic');
 caterwaul.clone('std')(function () {
   el('foo', 'foo'),
 
@@ -3692,6 +3709,8 @@ caterwaul.clone('std')(function () {
 
   eq('foo+bar', qs[foo + bar]),
   eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
+  eq('foo+bar*bif', qs[foo + bar * bif]),
+  eq('foo*bar+bif', qs[foo * bar + bif]),
   eq('foo+bar - bif', qs[foo + bar - bif]),
   eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'join']),
   eq('"foo"bar', qs["foo" + bar] /se[_.data = 'join']),
@@ -3742,10 +3761,11 @@ caterwaul.clone('std')(function () {
          equal(a, b) = ++count /se[a === b || null['#{a} should === #{b} (#{count})']],
          el(s, t)    = equal(figment.lex(s), t),
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).toString(), t.toString())]})();
-__c4bd7c319197c783fd8c1d6938686fe6
-meta::sdoc('js::test/caterwaul-std', <<'__95273b3f8069070ba081e4a6e4e56541');
+__b2fb8318d1f6257de670fd2debc379bf
+meta::sdoc('js::test/caterwaul-std', <<'__3e9f9bf28c2c6f5048c2879ccc46679e');
 Caterwaul std integration.
 
+console.log('starting test caterwaul-std');
 caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
   var fig = caterwaul.clone('fig.semantics fig.parser').after(caterwaul.clone('std seq continuation'));
@@ -3754,10 +3774,11 @@ caterwaul.clone('std')(function () {
   fig('f(_) / cps[_ + 3]', {f: fn[g][g(9)]}) == 12;
   fig('l[f x = x + 10] [f 5]') == 15;
 })();
-__95273b3f8069070ba081e4a6e4e56541
-meta::sdoc('js::test/comments', <<'__71288dc83331de8eef5a53949b4754d2');
+__3e9f9bf28c2c6f5048c2879ccc46679e
+meta::sdoc('js::test/comments', <<'__f5abcda3f75dd7ad02d6e09382387a14');
 Tests for line and block comments (lexer tests).
 
+console.log('starting test comments');
 caterwaul.clone('std seq continuation')(function () {
   eq('foo', 'foo'),
   eq('foo - Bar', 'foo  '),
@@ -3777,10 +3798,11 @@ caterwaul.clone('std seq continuation')(function () {
   where*[figment     = caterwaul.clone('fig.parser'),
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
-__71288dc83331de8eef5a53949b4754d2
-meta::sdoc('js::test/grouping', <<'__45cf571ab7967899a03fe6b23c2bc837');
+__f5abcda3f75dd7ad02d6e09382387a14
+meta::sdoc('js::test/grouping', <<'__970cb897d676d93ff24c9530ecff5d0e');
 Grouping construct tests.
 
+console.log('starting test grouping');
 caterwaul.clone('std seq continuation')(function () {
   eq('(foo)', qse[qg[foo]]),
   eq('[foo]', qs[[foo]]),
@@ -3796,10 +3818,11 @@ caterwaul.clone('std seq continuation')(function () {
   where*[figment     = caterwaul.clone('fig.parser'),
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(qs[_x].replace({_x: figment.parse(s)}).serialize(), t.serialize())]})();
-__45cf571ab7967899a03fe6b23c2bc837
-meta::sdoc('js::test/node-require', <<'__1dcd98ba14c11c9501cf0aae3373b0dd');
+__970cb897d676d93ff24c9530ecff5d0e
+meta::sdoc('js::test/node-require', <<'__4ce6e5ec20debea008cfffa9c3ec0de3');
 A test for require() within node.js
 
+console.log('starting test node-require');
 var got_called = false;
 var compiler = caterwaul.clone('fig');
 
@@ -3809,10 +3832,11 @@ compiler.require('test/helloworld.fig', function () {
 });
 
 got_called || null['fail: callback was never invoked'];
-__1dcd98ba14c11c9501cf0aae3373b0dd
-meta::sdoc('js::test/s-data-structures', <<'__e5a6ebcab3992ab9318400f342eeadf4');
+__4ce6e5ec20debea008cfffa9c3ec0de3
+meta::sdoc('js::test/s-data-structures', <<'__49ac78152defd9f385dab67ff4c36680');
 Data structure semantic tests.
 
+console.log('starting test s-data-structures');
 caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
   var fig = caterwaul.clone('fig.semantics fig.parser');
@@ -3836,10 +3860,11 @@ caterwaul.clone('std')(function () {
   fig('("foo2")') == 'foo2';
   fig('(("foo3"))') == 'foo3';
 })();
-__e5a6ebcab3992ab9318400f342eeadf4
-meta::sdoc('js::test/s-operators', <<'__3c29d2758bc5d7bd0622680df2494d6b');
+__49ac78152defd9f385dab67ff4c36680
+meta::sdoc('js::test/s-operators', <<'__46d41e89c07133c55d51d712c871c71d');
 Tests for unary/binary operator translation.
 
+console.log('starting test s-operators');
 caterwaul.clone('std seq continuation')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
 
@@ -3876,7 +3901,7 @@ caterwaul.clone('std seq continuation')(function () {
   fig('x! =bif 11', {'x$bang': {'=bif': fn[x][6 + x]}}) == 17;
   fig('x!=bif 12', {'x$bang': {'=bif': fn[x][6 + x]}}) == 18;
 })();
-__3c29d2758bc5d7bd0622680df2494d6b
+__46d41e89c07133c55d51d712c871c71d
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];

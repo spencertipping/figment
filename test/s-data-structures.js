@@ -1,5 +1,6 @@
 // Data structure semantic tests.
 
+console.log('starting test s-data-structures');
 caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
   var fig = caterwaul.clone('fig.semantics fig.parser');

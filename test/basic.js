@@ -1,5 +1,6 @@
 // Basic tests for the lexer/parser.
 
+console.log('starting test basic');
 caterwaul.clone('std')(function () {
   el('foo', 'foo'),
 
@@ -23,6 +24,8 @@ caterwaul.clone('std')(function () {
 
   eq('foo+bar', qs[foo + bar]),
   eq('foo+bar-bif', qs[foo + _x].replace({_x: qs[bar - bif]})),
+  eq('foo+bar*bif', qs[foo + bar * bif]),
+  eq('foo*bar+bif', qs[foo * bar + bif]),
   eq('foo+bar - bif', qs[foo + bar - bif]),
   eq('foo +bar', qs[foo + _x].replace({_x: qs[+bar] /se[_.data = '+']}) /se[_.data = 'join']),
   eq('"foo"bar', qs["foo" + bar] /se[_.data = 'join']),

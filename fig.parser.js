@@ -9,10 +9,10 @@
 // Basic elements.
 // Figment sees the world similarly to Caterwaul; that is, expressions are joined by infix and prefix operators, or by an implicit join action. (Analogous to 'i;' from a parsing perspective,
 // though the meaning is different.) Unlike Caterwaul, syntax trees don't encode preassigned operator precedence or syntactic constructs; it's just a big tree of operators and expressions. The
-// grammar rules are basically these (where \w is [A-Za-z0-9_] -- so it's totally fine to begin an identifier with a digit):
+// grammar rules are basically these (where \w is [A-Za-z0-9_]):
 
 // | operator ::= '=' ident | /[-+\/*&^%$#@!`~:\\|=?<>.;]+/
-//   ident    ::= /\w+['?!]*/
+//   ident    ::= /[a-z_]\w*['?!]*/
 //   atom     ::= '_' operator | /\d+/ | /\d*\.\d+([eE][-+]?\d+)?/ | /(['"])([^\1]|\\.)*\1/ | ident
 //   parens   ::= '(' expression ')'
 //   brackets ::= '[' expression ']'
@@ -41,6 +41,40 @@
 // postfix modifiers (e.g. 'runs quickly', or 'runs(quickly)(somewhere), which is more like function currying); whereas right-associativity would focus on building the object, modifying it in
 // reverse (like function application; e.g. 'quickly runs', which renders as 'quickly(runs(somewhere))').
 
+//   Operator precedence.
+//   At first I designed Figment without any concept of operator precedence beyond that implied by spacing. However, a language without any precedence has serious problems of ergonomics -- so
+//   Figment does provide some basic precedence rules beyond spacing. The idea is that each operator character has a precedence value, and the total precedence of an operator is the sum of
+//   precedences of its characters. (So precedence, in this context, is a higher-binds-more-weakly measure.)
+
+//   Here are the precedence levels (for binary operators only; unary operators are all considered to have the same precedence):
+
+//   | .                   add 0
+//     *, /                add 1
+//     %                   add 2
+//     +, -                add 3
+//     &, |, ^             add 4
+//     :, ;                add 5
+//     <, >                add 6
+//     !, @, #             add 7
+//     `, ~, \             add 8
+//     ?                   add 9
+//     =                   add 10
+//     $                   add 1000        <- anomaly!
+
+//   Infix identifiers have a precedence of 999, so they bind just before anything with a $, but after everything else. (Unless you have a 100-character operator, but you deserve what you get in
+//   that case.)
+
+//   No amount of precedence modification causes an operator to bind contrary to its spacing. That is, there exist no operators O and P such that 3O4 P 5 results in P binding before O.
+
+//   Dynamic rewriting.
+//   Precedence is implemented just above the grammar. This works as an inductive case: as each tree node is being consed, its precedence is checked against that of its right child. Whichever has
+//   the lower precedence is reassociated to become the local root. So, for example:
+
+//   | cons('*', c, cons('+', a, b))    ->    cons('+', cons('*', c, a), b)
+
+//   Because the invariant is kept, no looping is required to do this. Note that the swapping occurs only when (1) the two operators are of equal arity, and (2) they are of equal tightness. (See
+//   the grammar below for a more detailed idea of what this means.)
+
 // Toplevel syntax.
 // At the toplevel the document is split into paragraphs. SDoc-style paragraph classification is used: paragraphs that begin with [A-Z|] are considered comments, while others are interpreted as
 // text. Figment also supports a lightweight line comment syntax: /[-\/]\s*[A-Z]/ begins a line comment. That is, a slash / or a hyphen - followed by a capital letter (there can be whitespace).
@@ -67,7 +101,7 @@
 
            // Forward definition of expression
            expression(x) = expression(x),
-           identifier    = peg[c(/[A-Za-z0-9_]+['?!]*/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
+           identifier    = peg[c(/[a-z_][A-Za-z0-9_]*['?!]*/, 1) >> fn[xs][new caterwaul.syntax(xs[0])]],
            operator      = l*[coerced_identifier = peg[c('=') % identifier                  >> fn[xs][xs[0] + xs[1].data]],
                               regular_operator   = peg[c(/[-+\/*&^%$#@!`~:\\|=?<>\.;]+/, 1) >> fn[xs][xs[0]]]] in peg[coerced_identifier / regular_operator],
 
@@ -88,12 +122,24 @@
            binary(op, l, inductive, base) = l*[p(x) = p(x), p = peg[l % [op % p] >> fn[xs][xs[1] ? inductive(xs[0], xs[1][0], xs[1][1]) : base ? base(xs[0]) : xs[0]]]] in p,
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
-           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![new caterwaul.syntax('join', _, _0)]]]],
-           tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][new caterwaul.syntax(op, r)])],
-           tight_binary  = peg[binary(seq(operator, opt(space)),     tight_prefix, fn[l, op, r][new caterwaul.syntax(op[0], l, r)])],
-           loose_join    = peg[binary(space,                         tight_binary, fn[l, op, r][new caterwaul.syntax('join', l, r)])],
-           loose_prefix  = peg[prefix(seq(operator, space),          loose_join,   fn[   op, r][new caterwaul.syntax(op[0], r)])],
-           loose_binary  = peg[binary(spaced(operator),              loose_prefix, fn[l, op, r][new caterwaul.syntax(op, l, r)])],
-           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][new caterwaul.syntax(',', l, r)])],
+           // Operator precedence computation
+           precedence_table = l[current = 0] in {} /se.r[seq[~'. */ % +- &|^ :; <> !@# `~\\ ? ='.split(/\s+/) *![seq[~_.split('') *![r[_] = current]], ++current]], r['$'] = 1000],
+           precedence_of(op) = /^_/.test(op) ? 999 : seq[~op.split('') *[precedence_table[_]] /[_ + _0]],
+
+           // Convenience methods to create annotated syntax nodes
+           binary_tree(op, l, r, t) = new caterwaul.syntax(op, l, r) /se[_.is_tight = t],
+           unary_tree(op, r, t)     = new caterwaul.syntax(op, r)    /se[_.is_tight = t],
+
+           // Precedence rewriting
+           cons_binary(op, l, r, t) = r.constructor === caterwaul.syntax && r.data !== 'join' && r.is_tight === t && r.length === 2 && precedence_of(r.data) > precedence_of(op) ?
+                                      binary_tree(r.data, binary_tree(op, l, r.l, t), r.r, t) : binary_tree(op, l, r, t),
+
+           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![binary_tree('join', _, _0, true)]]]],
+           tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][unary_tree(op, r, true)])],
+           tight_binary  = peg[binary(seq(operator, opt(space)),     tight_prefix, fn[l, op, r][cons_binary(op[0], l, r, true)])],
+           loose_join    = peg[binary(space,                         tight_binary, fn[l, op, r][cons_binary('join', l, r, false)])],
+           loose_prefix  = peg[prefix(seq(operator, space),          loose_join,   fn[   op, r][unary_tree(op[0], r, false)])],
+           loose_binary  = peg[binary(spaced(operator),              loose_prefix, fn[l, op, r][cons_binary(op, l, r, false)])],
+           commas        = peg[binary(seq(opt(space), c(/,\s*/, 1)), loose_binary, fn[l, op, r][binary_tree(',', l, r)])],
            expression    = commas]});
 // Generated by SDoc 

@@ -1,5 +1,6 @@
 // Caterwaul std integration.
 
+console.log('starting test caterwaul-std');
 caterwaul.clone('std')(function () {
   defsubst[_x == _y][l[xc = _x, yc = _y][xc === yc || null['#{xc} should === #{yc}']]];
   var fig = caterwaul.clone('fig.semantics fig.parser').after(caterwaul.clone('std seq continuation'));

@@ -1,5 +1,6 @@
 // Tests for line and block comments (lexer tests).
 
+console.log('starting test comments');
 caterwaul.clone('std seq continuation')(function () {
   eq('foo', 'foo'),
   eq('foo - Bar', 'foo  '),
