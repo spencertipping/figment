@@ -54,9 +54,9 @@
 //     +, -                add 3
 //     &, |, ^             add 4
 //     :, ;                add 5
-//     <, >                add 6
-//     !, @, #             add 7
-//     `, ~, \             add 8
+//     !, @, #             add 6
+//     `, ~, \             add 7
+//     <, >                add 8
 //     ?                   add 9
 //     =                   add 10
 //     $                   add 1000        <- anomaly!
@@ -123,18 +123,19 @@
            prefix(op, l, inductive, base) = l*[p(x) = p(x), p = peg[(op % p >> fn[xs][inductive(xs[0], xs[1])]) / (l >> fn[x][base ? base(x) : x])]] in p,
 
            // Operator precedence computation
-           precedence_table = l[current = 0] in {} /se.r[seq[~'. */ % +- &|^ :; <> !@# `~\\ ? ='.split(/\s+/) *![seq[~_.split('') *![r[_] = current]], ++current]], r['$'] = 1000],
-           precedence_of(op) = /^_/.test(op) ? 999 : seq[~op.split('') *[precedence_table[_]] /[_ + _0]],
+           precedence_table = l[current = 0] in {} /se.r[seq[~'. */ % +- &|^ :; !@# `~\\ <> ? ='.split(/\s+/) *![seq[~_.split('') *![r[_] = current]], ++current]], r['$'] = 1000],
+           precedence_of(op) = op === 'join' ? -1 : /^_/.test(op) ? 999 : seq[~op.split('') *[precedence_table[_]] /[_ + _0]],
+           right_associates(x) = x !== 'join',
 
            // Convenience methods to create annotated syntax nodes
            binary_tree(op, l, r, t) = new caterwaul.syntax(op, l, r) /se[_.is_tight = t],
            unary_tree(op, r, t)     = new caterwaul.syntax(op, r)    /se[_.is_tight = t],
 
            // Precedence rewriting
-           cons_binary(op, l, r, t) = r.data !== 'join' && r.is_tight === t && r.length === 2 && precedence_of(r.data) > precedence_of(op) ?
+           cons_binary(op, l, r, t) = r.is_tight === t && r.length === 2 && precedence_of(r.data) > precedence_of(op) + +right_associates(r.data) ?
                                       binary_tree(r.data, binary_tree(op, l, r[0], t), r[1], t) : binary_tree(op, l, r, t),
 
-           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![binary_tree('join', _, _0, true)]]]],
+           tight_join    = peg[atom[1] >> fn[xs][seq[~xs /![cons_binary('join', _, _0, true)]]]],
            tight_prefix  = peg[prefix(operator,                      tight_join,   fn[   op, r][unary_tree(op, r, true)])],
            tight_binary  = peg[binary(seq(operator, opt(space)),     tight_prefix, fn[l, op, r][cons_binary(op[0], l, r, true)])],
            loose_join    = peg[binary(space,                         tight_binary, fn[l, op, r][cons_binary('join', l, r, false)])],
