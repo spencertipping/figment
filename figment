@@ -2297,7 +2297,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 meta::data('main', 'server.js');
 meta::data('watching', '1');
-meta::fig('std', <<'__50757aae4bd92beabd39eba5cc743389');
+meta::fig('std', <<'__17c7f615a36a6e737ccd96817e8794a0');
 Figment -> Caterwaul standard library | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2313,11 +2313,25 @@ more pragmatic in the sense that it supports unit tests in line with source code
   The whole point in writing Figment was to address Caterwaul's problems in everyday coding. Here are a few:
 
   | 1. fn[x][y] is a heavy notation. Alternatives using infix operators, such as x -> y, are more convenient and readable.
-    2. l/cps[x <- foo(_)] misuses the prefix - operator, risking counterintuitive bindings. <- is a regular operator in Figment.
+    2. l/cps[x <- foo(_)] misuses the prefix - operator, risking counterintuitive bindings. <- is a regular operator in Figment (also, having free-standing <- would be useful).
     3. Web addresses and e-mails, arguably two of the most important data structures now, aren't representable with operators. Figment allows you to represent and perform pattern matching
        against both.
-    4.
-__50757aae4bd92beabd39eba5cc743389
+
+  Cool stuff that Figment should support.
+  It's important to get the concepts right before diving into notation, but Figment is still a notational convenience more than it is a vehicle for additional formalisms. As such, it picks up
+  where Caterwaul left off as much as it does introduce its own language. One thing I want to avoid with Figment is going too far down the Haskell road. Beautiful software is unmaintainable in
+  its own right; there is no point to introducing a concept that ultimately makes the code more beautiful but more difficult to maintain. So to some extent Figment should have the same
+  pragmatic underpinnings that, say, Perl does, and focus on being more expedient rather than more conceptually coherent.
+
+  To this end, I think it makes sense to (mis)use operators extensively, and to make sure that precedence is designed sensibly. The advantage here is that operator notation can cross-cut the
+  abstractions constructively; for instance:
+
+  | monad >>= \x -> f x         / In Haskell; alternatively, monad >>= f
+    monad >>=/ f _              / In Figment; alternatively, monad >>= f; alternatively monad >>= x -> f x
+
+  Figment's >>=/ operator is doing two things. One is a bind and the other is a lambda construction. Ideally operators compose somehow; this will have to be managed as a compiler
+  metaprogramming method rather than built-in if the framework is expected to be extensible.
+__17c7f615a36a6e737ccd96817e8794a0
 meta::function('cat', 'join "\\n", retrieve(@_);');
 meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
 # Stashes a quick one-line continuation. (Used to remind me what I was doing.)
