@@ -208,6 +208,10 @@ meta::define_form 'template', sub {
 __25f4d6eafb1d3eea6d5d3d9a71a5623e
 meta::meta('type::vim_highlighter', 'meta::functor::editable \'vim_highlighter\', extension => \'.vim\', inherit => 1, default => \'edit\';');
 meta::meta('type::watch', 'meta::functor::editable \'watch\', prefix => \'watch::\', inherit => 1, extension => \'.pl\', default => \'cat\';');
+meta::alias('ep', 'edit sdoc::js::fig.parser');
+meta::alias('er', 'edit sdoc::js::fig.require');
+meta::alias('es', 'edit sdoc::js::fig.semantics');
+meta::alias('estd', 'edit fig::std');
 meta::bootstrap('initialization', <<'__8774229a1a0ce7fd056d81ba0b077f79');
 #!/usr/bin/perl
 # Run perldoc on this file for documentation.
@@ -2396,9 +2400,6 @@ save();
 '';
 __c74a5d1c0dbd922acaf1397f89190fce
 meta::function('enable', 'chmod_self(sub {$_[0] | $_[0] >> 2});');
-meta::function('ep', 'edit(\'sdoc::js::fig.parser\')');
-meta::function('er', 'edit(\'sdoc::js::fig.require\')');
-meta::function('es', 'edit(\'sdoc::js::fig.semantics\');');
 meta::function('export', <<'__388e0cc60507443cb1c0cc3e2658cfef');
 # Exports data into a text file.
 #   export attr1 attr2 attr3 ... file.txt
