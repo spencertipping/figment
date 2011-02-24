@@ -1,0 +1,44 @@
+Figment -> Caterwaul standard library | Spencer Tipping
+Licensed under the terms of the MIT source code license
+
+Introduction.
+Unlike Caterwaul's standard library, which is designed to make Javascript more tolerable, this standard library exists to ease the transition from Figment into Javascript. As such it's more
+ad-hoc by design, and correspondingly less coupled to Javascript constructs. However, the language under the hood is still Javascript (and interoperability is important), so fundamental
+distinctions such as bound-vs-non-bound functions still exist.
+
+Figment's standard library is simultaneously much more academic and much more pragmatic than Caterwaul's. It's more academic in the sense that it supports more higher-order formalisms, and
+more pragmatic in the sense that it supports unit tests in line with source code. (Some people would contend that this is a bad idea.)
+
+  Deficiencies of Caterwaul.
+  The whole point in writing Figment was to address Caterwaul's problems in everyday coding. Here are a few:
+
+  | 1. fn[x][y] is a heavy notation. Alternatives using infix operators, such as x -> y, are more convenient and readable.
+    2. l/cps[x <- foo(_)] misuses the prefix - operator, risking counterintuitive bindings. <- is a regular operator in Figment (also, having free-standing <- would be useful).
+    3. Web addresses and e-mails, arguably two of the most important data structures now, aren't representable with operators. Figment allows you to represent and perform pattern matching
+       against both.
+
+  Cool stuff that Figment should support.
+  It's important to get the concepts right before diving into notation, but Figment is still a notational convenience more than it is a vehicle for additional formalisms. As such, it picks up
+  where Caterwaul left off as much as it does introduce its own language. One thing I want to avoid with Figment is going too far down the Haskell road. Beautiful software is unmaintainable in
+  its own right; there is no point to introducing a concept that ultimately makes the code more beautiful but more difficult to maintain. So to some extent Figment should have the same
+  pragmatic underpinnings that, say, Perl does, and focus on being more expedient rather than more conceptually coherent.
+
+  To this end, I think it makes sense to (mis)use operators extensively, and to make sure that precedence is designed sensibly. The advantage here is that operator notation can cross-cut the
+  abstractions constructively; for instance:
+
+  | monad >>= \x -> f x         / In Haskell; alternatively, monad >>= f
+    monad >>=\ f _              / In Figment; alternatively, monad >>= f; alternatively monad >>= x -> f x
+
+  Figment's >>=\ operator is doing two things. One is a bind and the other is a lambda construction. Ideally operators compose somehow; this will have to be managed as a compiler
+  metaprogramming method rather than built-in if the framework is expected to be extensible.
+
+Quotation.
+Before doing anything else, it's really important to get quotation right. This forms the basis for creating macros.
+
+  this.
+  macro(this.parse('qs[_]'), function (x) {return x}).
+
+Functional forms.
+These are various function patterns that occur frequently in Javascript. The idea is to identify the most common functional patterns and abstract them away into very concise, readable syntax.
+
+  macro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})

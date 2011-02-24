@@ -212,6 +212,7 @@ meta::alias('ep', 'edit sdoc::js::fig.parser');
 meta::alias('er', 'edit sdoc::js::fig.require');
 meta::alias('es', 'edit sdoc::js::fig.semantics');
 meta::alias('estd', 'edit fig::std');
+meta::alias('ev', 'edit vim_highlighter::figment');
 meta::bootstrap('initialization', <<'__8774229a1a0ce7fd056d81ba0b077f79');
 #!/usr/bin/perl
 # Run perldoc on this file for documentation.
@@ -2304,7 +2305,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 meta::data('main', 'server.js');
 meta::data('watching', '1');
-meta::fig('std', <<'__a90ddefda36a6e737ccd96817e8794a0');
+meta::fig('std', <<'__124be097f2af9578f71cad0c0b65a947');
 Figment -> Caterwaul standard library | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2338,7 +2339,18 @@ more pragmatic in the sense that it supports unit tests in line with source code
 
   Figment's >>=\ operator is doing two things. One is a bind and the other is a lambda construction. Ideally operators compose somehow; this will have to be managed as a compiler
   metaprogramming method rather than built-in if the framework is expected to be extensible.
-__a90ddefda36a6e737ccd96817e8794a0
+
+Quotation.
+Before doing anything else, it's really important to get quotation right. This forms the basis for creating macros.
+
+  this.
+  macro(this.parse('qs[_]'), function (x) {return x}).
+
+Functional forms.
+These are various function patterns that occur frequently in Javascript. The idea is to identify the most common functional patterns and abstract them away into very concise, readable syntax.
+
+  macro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})
+__124be097f2af9578f71cad0c0b65a947
 meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
@@ -2629,14 +2641,16 @@ $string;
 __66e539d29e9afa903569efad0eb7c886
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
 meta::function('render', 'file::write(attribute($_) . \'.js\', retrieve($_), mkpath => 1) for grep s/^sdoc::js::/js::/ || /^js::/, keys %data;');
-meta::function('rendera', <<'__a92f90c86a22c83017d597d54a62550d');
+meta::function('rendera', <<'__1b7523b54144d2246f950a3f7db0fcd4');
 my @files = qw/fig.require fig.semantics fig.parser fig/;
 
 render();
 file::write('fig.all.js', cat(map "js::$_", @files));
 file::write("$_.js.sdocp", retrieve("sdocp::js::$_")) for @files;
 node(['cached_dependency::caterwaul.all.js', 'js::minify'], $_) for map "$_.js", 'fig.all', @files;
-__a92f90c86a22c83017d597d54a62550d
+
+s/^fig::// && file::write("modules/$_.fig", retrieve("fig::$_")), for sort keys %data;
+__1b7523b54144d2246f950a3f7db0fcd4
 meta::function('repl', <<'__31ce26877d3622ecdda1025b308ae6aa');
 # Runs a REPL of your source, minus the webserver.
 render();
@@ -3840,6 +3854,21 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
 __f5abcda3f75dd7ad02d6e09382387a14
+meta::sdoc('js::test/fig-std', <<'__d4091b8a473cbcac3f6e36d03a96b953');
+Figment standard library tests
+
+console.log('starting test fig-std');
+caterwaul.clone('std seq continuation')(function () {
+  defsubst[_a == _b][l[ac = _a, bc = _b][ac === bc || null[ac + ' should have been ' + bc]]];
+
+  var got_inside = false;
+  var fig = caterwaul.clone('fig').require('modules/std.fig', fn_[
+    got_inside = true,
+    this('x -> x + 1')(5) == 6]);
+
+  got_inside == true;
+})();
+__d4091b8a473cbcac3f6e36d03a96b953
 meta::sdoc('js::test/grouping', <<'__970cb897d676d93ff24c9530ecff5d0e');
 Grouping construct tests.
 
@@ -3960,7 +3989,7 @@ my ($commands) = @_;
 return '' if template::failing_conditional($commands);
 join "\n", map retrieve($_), split /\s+/, $commands;
 __e0624844a65ae41e0217dd871fc0dbfb
-meta::vim_highlighter('figment', <<'__4da8e33d88087f77a3c184e60c6dfe63');
+meta::vim_highlighter('figment', <<'__15ef53a7dfa329a34ac34f5e37dc5fbc');
 " Vim syntax file
 " Language:   Figment
 " Maintainer: Spencer Tipping <spencer@spencertipping.com>
@@ -4022,24 +4051,10 @@ syn match figCurlyError  /[)\]]/ contained containedin=figCurlyBrackets
   hi link figCurlyBracket       Special
 
 " Quotation and unquotation.
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+(/            end=/)/      contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+\[/           end=/]/      contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+{/            end=/}/      contains=figUnquote,figEscape,@figBrackets
-syn region figQuoted matchgroup=figQuotation start=/\<q[a-pr-z]\+\z([+/"'|]\)/ end=/\z1\|$/ contains=figUnquote,figEscape
-
-syn region figSingleString matchgroup=figStringDelimiter start=/\<'/ end=/'/ contains=figUnquote,figEscape
-syn region figDoubleString matchgroup=figStringDelimiter start=/"/   end=/"/ contains=figUnquote,figEscape
+syn region figSingleString matchgroup=figStringDelimiter start=/\<'/ end=/'/ contains=figEscape
+syn region figDoubleString matchgroup=figStringDelimiter start=/"/   end=/"/ contains=figEscape
 
 syn match  figEscape /\\./ contained
-syn region figUnquote matchgroup=figUnquotation start=/Q(/            end=/)/      contained contains=TOP
-syn region figUnquote matchgroup=figUnquotation start=/Q\[/           end=/]/      contained contains=TOP
-syn region figUnquote matchgroup=figUnquotation start=/Q{/            end=/}/      contained contains=TOP
-syn region figUnquote matchgroup=figUnquotation start=/Q\z(["'+/|]\)/ end=/\z1\|$/ contained contains=TOP
-
-syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*(/            end=/)/ contains=@figBrackets
-syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*\[/           end=/]/ contains=@figBrackets
-syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*{/            end=/}/ contains=@figBrackets
-syn region figLiteralQuoted matchgroup=figLiteralQuotation start=/\<q[A-Z][a-z]*\z([+/"'|]\)/ end=/\z1/
 
   hi link figQuoted           String
   hi link figStringDelimiter  Special
@@ -4061,7 +4076,7 @@ syn match figFloat   /\<\d*\.\d\+\([eE][-+]\?\d\+\)\?/
   hi link figFloat   Number
 
 let b:current_syntax = "figment"
-__4da8e33d88087f77a3c184e60c6dfe63
+__15ef53a7dfa329a34ac34f5e37dc5fbc
 internal::main();
 
 __END__
