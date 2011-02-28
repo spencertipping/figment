@@ -2305,7 +2305,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 meta::data('main', 'server.js');
 meta::data('watching', '1');
-meta::fig('std', <<'__124be097f2af9578f71cad0c0b65a947');
+meta::fig('std', <<'__6d3913515fb9a6564f0f443cd2a9aa82');
 Figment -> Caterwaul standard library | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2336,6 +2336,7 @@ more pragmatic in the sense that it supports unit tests in line with source code
 
   | monad >>= \x -> f x         / In Haskell; alternatively, monad >>= f
     monad >>=\ f _              / In Figment; alternatively, monad >>= f; alternatively monad >>= x -> f x
+    monad >>=\= f this _        / In Figment; alternatively, monad >>= x => f this x (a bound lambda rather than an unbound one)
 
   Figment's >>=\ operator is doing two things. One is a bind and the other is a lambda construction. Ideally operators compose somehow; this will have to be managed as a compiler
   metaprogramming method rather than built-in if the framework is expected to be extensible.
@@ -2350,7 +2351,7 @@ Functional forms.
 These are various function patterns that occur frequently in Javascript. The idea is to identify the most common functional patterns and abstract them away into very concise, readable syntax.
 
   macro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})
-__124be097f2af9578f71cad0c0b65a947
+__6d3913515fb9a6564f0f443cd2a9aa82
 meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
@@ -3854,7 +3855,7 @@ caterwaul.clone('std seq continuation')(function () {
          equal(a, b) = a === b || null['#{a} should === #{b}'],
          eq(s, t)    = equal(figment.lex(s) /re[_.serialize ? _.serialize() : _], t)]})();
 __f5abcda3f75dd7ad02d6e09382387a14
-meta::sdoc('js::test/fig-std', <<'__d4091b8a473cbcac3f6e36d03a96b953');
+meta::sdoc('js::test/fig-std', <<'__326ae70e6fdc51470808642f83423493');
 Figment standard library tests
 
 console.log('starting test fig-std');
@@ -3862,13 +3863,13 @@ caterwaul.clone('std seq continuation')(function () {
   defsubst[_a == _b][l[ac = _a, bc = _b][ac === bc || null[ac + ' should have been ' + bc]]];
 
   var got_inside = false;
-  var fig = caterwaul.clone('fig').require('modules/std.fig', fn_[
+  var fig = caterwaul.global().clone('fig').require('modules/std.fig', fn_[
     got_inside = true,
     this('x -> x + 1')(5) == 6]);
 
   got_inside == true;
 })();
-__d4091b8a473cbcac3f6e36d03a96b953
+__326ae70e6fdc51470808642f83423493
 meta::sdoc('js::test/grouping', <<'__970cb897d676d93ff24c9530ecff5d0e');
 Grouping construct tests.
 

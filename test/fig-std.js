@@ -5,7 +5,7 @@ caterwaul.clone('std seq continuation')(function () {
   defsubst[_a == _b][l[ac = _a, bc = _b][ac === bc || null[ac + ' should have been ' + bc]]];
 
   var got_inside = false;
-  var fig = caterwaul.clone('fig').require('modules/std.fig', fn_[
+  var fig = caterwaul.global().clone('fig').require('modules/std.fig', fn_[
     got_inside = true,
     this('x -> x + 1')(5) == 6]);
 

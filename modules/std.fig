@@ -28,6 +28,7 @@ more pragmatic in the sense that it supports unit tests in line with source code
 
   | monad >>= \x -> f x         / In Haskell; alternatively, monad >>= f
     monad >>=\ f _              / In Figment; alternatively, monad >>= f; alternatively monad >>= x -> f x
+    monad >>=\= f this _        / In Figment; alternatively, monad >>= x => f this x (a bound lambda rather than an unbound one)
 
   Figment's >>=\ operator is doing two things. One is a bind and the other is a lambda construction. Ideally operators compose somehow; this will have to be managed as a compiler
   metaprogramming method rather than built-in if the framework is expected to be extensible.
