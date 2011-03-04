@@ -42,4 +42,4 @@ Before doing anything else, it's really important to get quotation right. This f
 Functional forms.
 These are various function patterns that occur frequently in Javascript. The idea is to identify the most common functional patterns and abstract them away into very concise, readable syntax.
 
-  macro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})
+  / Mmacro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})

@@ -208,6 +208,7 @@ meta::define_form 'template', sub {
 __25f4d6eafb1d3eea6d5d3d9a71a5623e
 meta::meta('type::vim_highlighter', 'meta::functor::editable \'vim_highlighter\', extension => \'.vim\', inherit => 1, default => \'edit\';');
 meta::meta('type::watch', 'meta::functor::editable \'watch\', prefix => \'watch::\', inherit => 1, extension => \'.pl\', default => \'cat\';');
+meta::alias('e', 'edit sdoc::js::fig');
 meta::alias('ep', 'edit sdoc::js::fig.parser');
 meta::alias('er', 'edit sdoc::js::fig.require');
 meta::alias('es', 'edit sdoc::js::fig.semantics');
@@ -2305,7 +2306,7 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 meta::data('main', 'server.js');
 meta::data('watching', '1');
-meta::fig('std', <<'__6d3913515fb9a6564f0f443cd2a9aa82');
+meta::fig('std', <<'__25a94251ae1788716b0e734dec4af302');
 Figment -> Caterwaul standard library | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -2350,8 +2351,8 @@ Before doing anything else, it's really important to get quotation right. This f
 Functional forms.
 These are various function patterns that occur frequently in Javascript. The idea is to identify the most common functional patterns and abstract them away into very concise, readable syntax.
 
-  macro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})
-__6d3913515fb9a6564f0f443cd2a9aa82
+  / Mmacro(qs[_ -> _], function (xs, body) {return qs[function (xs_) {return body_}].replace({xs_: new this.syntax(',', Array.prototype.slice.call(xs.as('join'))), body_: body})})
+__25a94251ae1788716b0e734dec4af302
 meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
@@ -2802,6 +2803,10 @@ meta::function('test', <<'__e9b1bcb787abc2ac611d0997e0ff5632');
 rendera();
 node(['cached_dependency::caterwaul.all.js', 'fig.all.js', grep s/sdoc:://, select_keys('--criteria' => 'sdoc::js::.*test/.*')], @_);
 __e9b1bcb787abc2ac611d0997e0ff5632
+meta::function('test-one', <<'__5b36a4cc6df2536f83227c91dd85a3f5');
+rendera();
+node(['cached_dependency::caterwaul.all.js', 'fig.all.js', grep s/sdoc:://, select_keys('--criteria' => "sdoc::js::.*test/$_[0].*")]);
+__5b36a4cc6df2536f83227c91dd85a3f5
 meta::function('test-prof', <<'__93830bb798a4840762754beaa70d599b');
 rendera();
 &{'node-custom'}(['cached_dependency::caterwaul.all.js', 'fig.all.js', grep s/sdoc:://, select_keys('--criteria' => 'sdoc::js::.*test/.*')], ['--prof'], @_);
@@ -3145,10 +3150,14 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
-meta::note('q', <<'__44ee37c4c0aacdd8ccd1ae02ba31b368');
+meta::note('q', <<'__2ea5dd43ed8f99943ab7563eac88c627');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
 convert text into syntax trees. In this case the syntax trees are based on Caterwaul's format -- this enables caterwaul-based macroexpansion.
+
+Offline compilation.
+Figment, being a separate language and kind of a pain, should probably be translated into Javascript offline. Then a Figment compiler could be a self-modifying Perl script with certain
+configurations that are applied automatically. This reduces the overhead of trying to get it to work with Caterwaul, and simplifies the bootstrap semantics.
 
 Hackishness of the platform.
 Using Caterwaul to provide semantics for Figment is kind of weird. In some ways it makes sense; Caterwaul really is a driver for Javascript-based macroexpandable languages, so leveraging it
@@ -3181,7 +3190,7 @@ It's better to use composable loading:
 
 Then the figment compiler behaves much more predictably (which it already does with require(), I guess, but it should try to appear coherent in addition to being such). It also makes
 composition more obviously sensible.
-__44ee37c4c0aacdd8ccd1ae02ba31b368
+__2ea5dd43ed8f99943ab7563eac88c627
 meta::parent('./sdoc', <<'__2d47795f5a2f946e1655dcc68b32aadd');
 function::lss
 function::sdoc
@@ -3659,7 +3668,7 @@ caterwaul function should already be configured as a figment parser for this to 
     this.configure(typeof window === 'undefined' ? 'fig.require.nodejs' : 'fig.require.ajax').
          method('require', fn[modules, cc][this.figment_require(modules, _) /cpb[seq[~_ *![c(_, {'this': c})]], cc && cc.call(c), where[c = this.clone()]]])});
 __03c395a5ce6398c3c72d6407902560a2
-meta::sdoc('js::fig.semantics', <<'__ad19bddf5df7ad8b7644a0b14efaab71');
+meta::sdoc('js::fig.semantics', <<'__038e2e7499d0aede1798772e4d1110fc');
 Figment -> Caterwaul semantics | Spencer Tipping
 Licensed under the terms of the MIT source code license
 
@@ -3697,9 +3706,6 @@ As far as I know there is no particularly palatable way to embed arbitrary multi
 fly:
 
 | caterwaul.tconfiguration('figment', 'fig.std', require('fs').readFileSync('std.fig', 'utf8'));
-
-The browser environment is on the one hand trickier, and on the other hand not as bad. It supports synchronous loading through <script> tags; all that needs to be done to handle Figment source
-is to create a driver that recognizes <script> tags whose type is 'text/figment' and stores them as local strings to be evaluated later by the Figment compiler.
 
 Conversion.
 The core Figment conversion is fairly straightforward. The basic idea is, "render exactly as the user typed it if it's syntactically valid in Javascript; otherwise, fudge stuff until it
@@ -3751,7 +3757,7 @@ caterwaul.tconfiguration('std seq continuation', 'fig.semantics', function () {
          transform_single(t)               = regexp_promotion(t) || constant_literal(t) || groupless_operator(t) || regular_group(t) || direct_join_as_invocation(t) ||
                                              join_to_invocation_promotion(t) || binary_operator(t) || unary_operator(t) || identifier(t) || t,
          transform(t)                      = t && transform_single(t.map(transform))]});
-__ad19bddf5df7ad8b7644a0b14efaab71
+__038e2e7499d0aede1798772e4d1110fc
 meta::sdoc('js::minify', <<'__c427ba38be3090426d6ef69c5cabf6b3');
 Minifies a JavaScript file by using the Caterwaul parse/deparse mechanism.
 This won't do identifier packing (which is unsafe in Caterwaul), but it will provide decent minification by removing comments and most whitespace.
@@ -3953,7 +3959,7 @@ caterwaul.clone('std')(function () {
   fig('(("foo3"))') == 'foo3';
 })();
 __49ac78152defd9f385dab67ff4c36680
-meta::sdoc('js::test/s-operators', <<'__eec2ce77154a34a7d6f92dea3c58c06a');
+meta::sdoc('js::test/s-operators', <<'__6f3a7abf9c152e804545e27c658c4a1e');
 Tests for unary/binary operator translation.
 
 console.log('starting test s-operators');
@@ -3984,6 +3990,10 @@ caterwaul.clone('std seq continuation')(function () {
   fig('(f x)y', {x: 5, y: 6, f: fn[x][fn[y][x + y]]}) == 11;
   fig('g (f x)y', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 22;
 
+  fig('this.macro', {'this': {macro: 100}}) == 100;
+  fig('this.parse("qs[_]")', {'this': {parse: fn[s][s == 'qs[_]' && 101]}}) == 101;
+  fig('function (x) {return x}')(5) == f;
+
   fig('(x["toString"])()', {x: 5}) == '5';
 
   fig('x >>= 7', {x: {'>>=': fn[x][6 + x]}}) == 13;
@@ -3993,7 +4003,7 @@ caterwaul.clone('std seq continuation')(function () {
   fig('x! =bif 11', {'x$bang': {'=bif': fn[x][6 + x]}}) == 17;
   fig('x!=bif 12', {'x$bang': {'=bif': fn[x][6 + x]}}) == 18;
 })();
-__eec2ce77154a34a7d6f92dea3c58c06a
+__6f3a7abf9c152e804545e27c658c4a1e
 meta::template('comment', '\'\';     # A mechanism for line or block comments.');
 meta::template('eval', <<'__eb0b1058649eb2d833f348540516b358');
 my $result = eval $_[0];

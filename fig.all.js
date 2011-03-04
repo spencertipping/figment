@@ -90,9 +90,6 @@
 
 // | caterwaul.tconfiguration('figment', 'fig.std', require('fs').readFileSync('std.fig', 'utf8'));
 
-// The browser environment is on the one hand trickier, and on the other hand not as bad. It supports synchronous loading through <script> tags; all that needs to be done to handle Figment source
-// is to create a driver that recognizes <script> tags whose type is 'text/figment' and stores them as local strings to be evaluated later by the Figment compiler.
-
 // Conversion.
 // The core Figment conversion is fairly straightforward. The basic idea is, "render exactly as the user typed it if it's syntactically valid in Javascript; otherwise, fudge stuff until it
 // works." This with the caveat that everything Figment converts is in expression context, not statement context -- so 'if (x) {y}' will render as a curried function call, not an if-statement.

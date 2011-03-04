@@ -28,6 +28,10 @@ caterwaul.clone('std seq continuation')(function () {
   fig('(f x)y', {x: 5, y: 6, f: fn[x][fn[y][x + y]]}) == 11;
   fig('g (f x)y', {x: 5, y: 6, g: fn[x][x * 2], f: fn[x][fn[y][x + y]]}) == 22;
 
+  fig('this.macro', {'this': {macro: 100}}) == 100;
+  fig('this.parse("qs[_]")', {'this': {parse: fn[s][s == 'qs[_]' && 101]}}) == 101;
+  fig('function (x) {return x}')(5) == f;
+
   fig('(x["toString"])()', {x: 5}) == '5';
 
   fig('x >>= 7', {x: {'>>=': fn[x][6 + x]}}) == 13;
