@@ -3150,6 +3150,15 @@ meta::message_color('state', 'purple');
 meta::message_color('states', 'yellow');
 meta::message_color('test', 'purple');
 meta::message_color('watch', 'blue');
+meta::note('offline', <<'__a08cee1a3dc59b88333f22c9823fd095');
+Offline format thoughts.
+Let's suppose Figment is an offline compiler. One potential issue is how to represent the encoded Javascript. Maybe the best approach is to generate expressions that produce Caterwaul source
+trees; this retains the appropriate hackishness without losing any utility or, particularly, any ergonomics (though it does reintroduce the SDoc step, and this time with significantly more
+computational delay).
+
+I still really like the idea of having Caterwaul automatically convert Figment sources. On the other hand, there's a large black box between Figment and compiled Javascript if it's done that
+way. (Of course, any confusion here probably highlights a deficiency in the default Figment conversion semantics.)
+__a08cee1a3dc59b88333f22c9823fd095
 meta::note('q', <<'__2ea5dd43ed8f99943ab7563eac88c627');
 Figment programming language.
 This language is designed to address the shortcomings in various other projects including Caterwaul and Divergence. It has no defined semantics; all it provides is a lex and parse algorithm to
